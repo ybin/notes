@@ -1,0 +1,15 @@
+! [master] add intel panorama files, but not modify them.
+ * [panorama] change 'Pic:' text orientation
+  ! [rotation] add landscope and portrait layout.
+---
+ *  [panorama] change 'Pic:' text orientation
+  + [rotation] add landscope and portrait layout.
+ *+ [panorama^] add switcher and thumbnail
+ *+ [panorama~2] update highlight arrow when landscope
+ *+ [panorama~3] add shutter button icon; modify onBackPressed method.
+ *+ [panorama~4] modify orientation listener.
+ *+ [panorama~5] panorama can run with some errors.
+ *+ [panorama~6] add intel panorama entrance.
+ *+ [panorama~7] jepg storage ok; compile pass.
+ *+ [panorama~8] milestone with some storage interface errors and R not be resolved errors.
++*+ [master] add intel panorama files, but not modify them.

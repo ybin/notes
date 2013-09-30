@@ -1,0 +1,113 @@
+﻿
+%%% fontenc
+%\usepackage{fontspec,xunicode,xltxtra}
+%\setmainfont{Times New Roman}
+%\setsansfont{Source Sans Pro}
+%\setmonofont{Source Sans Pro}
+
+%%% xeCJK
+\usepackage{xeCJK}
+\setCJKmainfont[BoldFont=Adobe Heiti Std]{Adobe Song Std}
+\setCJKsansfont[BoldFont=Adobe Heiti Std]{Adobe Song Std}
+\setCJKmonofont[BoldFont=Adobe Heiti Std]{Adobe Song Std}
+\XeTeXlinebreaklocale "zh"
+\XeTeXlinebreakskip=0pt plus 1pt minus 0.1pt
+
+\usepackage{xcolor}
+\usepackage{graphicx}
+
+%%% get total page number
+\usepackage{lastpage}
+
+%%% customized definition
+\makeatletter
+\def\sybtitle#1{\def\@sybtitle{#1}}
+\def\sybauthor#1{\def\@sybauthor{#1}}
+\def\sybdate#1{\def\@sybdate{#1}}
+\sybtitle{}
+\sybauthor{}
+\sybdate{}
+\def\sybmaketitle{
+  \begin{center}
+  \vspace*{.8in}
+  {\huge\bfseries\@sybtitle}
+  \par
+  \vspace{.8in}
+  {\Large\@sybauthor}
+  \par
+  \vspace{.2in}
+  \@sybdate
+  \vspace{.5in}
+  \end{center}
+}
+\makeatother
+\setlength{\parindent}{0pt}
+\renewcommand{\today}{\number\month 月 \number\day 日, ~\number\year 年}
+\def\lt{\textless}
+\def\gt{\textgreater}
+\renewcommand\contentsname{\bfseries 目~~录}
+\newcommand\bs{\texttt{\symbol{'134}}} % input backslash sign
+%\newcommand\bs{\string\} % same as above definition
+\long\def\cmd#1{\par\vspace{1em}\hspace*{6ex}#1\vspace{1em}\par}
+\def\cstr#1{\texttt{\string#1}} % e.g. \cstr{\latex}
+\long\def\runcode#1{\par\bigskip#1\bigskip\par}
+% 我不想看到那么多的underful hbox，尤其是minted环境加上背景色之后
+\hbadness=10000
+% 适当放宽overful hbox的限制，运行2pt的溢出
+\hfuzz=2pt
+
+
+%%% change background color & add frame for enumerate enviroment
+\usepackage{mdframed}
+\newmdenv[backgroundcolor=blue!10]{coloredframe}
+\newenvironment{coloredenumerate}{
+  \begin{coloredframe}
+  \begin{enumerate}
+}{
+  \end{enumerate}
+  \end{coloredframe}
+}
+
+%%% geometry
+\usepackage[includehead,includefoot,hmargin=21mm,vmargin=10.5mm,
+            headsep=12pt,headheight=25pt]{geometry}
+%\usepackage[includehead,includefoot,hmargin=1.2in,vmargin=1in]{geometry}
+
+%%% fancyhdr
+\usepackage{fancyhdr}
+\makeatletter
+\fancypagestyle{main} {
+  \fancyhf{} % clear header & footer
+  \fancyhead[C]{\bfseries\@sybtitle}
+  \fancyfoot[C]{\thepage/\pageref*{LastPage}}
+  \renewcommand{\headrulewidth}{0.4pt} % header line
+  \renewcommand{\footrulewidth}{0.4pt} % footer line
+}
+\fancypagestyle{header} {
+  \fancyhf{} % clear header & footer
+  \fancyfoot[C]{\Roman{page}}
+  \renewcommand{\headrulewidth}{0pt} % header line
+  \renewcommand{\footrulewidth}{0pt} % footer line
+}
+\makeatother
+
+\usepackage{titlesec}
+\titleformat{\part}{\centering\Large\bfseries}{第\,\thepart\,部分}{1em}{}
+\titleformat{\section}{\large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{1em}{}
+%\titlespacing*{章节命令}{左边距}{上文距}{下文距}[右边距]
+\titlespacing*{\section}{0pt}{2\baselineskip}{\parsep}
+
+
+\usepackage{hyperref}
+
+%%% perfect source code display
+\usepackage{minted}
+%\usemintedstyle{colorful}
+\definecolor{srcbg}{rgb}{0.95,0.95,0.95}
+\newminted{java}{linenos,tabsize=4,bgcolor=srcbg}
+\newminted{xml}{linenos,tabsize=4,bgcolor=srcbg}
+\newminted{cpp}{linenos,tabsize=4,bgcolor=srcbg}
+\newminted{bash}{linenos,tabsize=4,bgcolor=srcbg}
+\newminted{latex}{linenos,tabsize=4,bgcolor=srcbg}
+

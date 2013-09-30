@@ -1,0 +1,83 @@
+﻿
+%********** beamer settings **********
+\usetheme{Madrid} %{default} %{Singapore} %{Warsaw} %{Copenhagen} %{Madrid}
+%\setbeamertemplate{navigation symbols}{} % remove the navigation symbols
+%\useoutertheme{infolines} % use outer theme for footer.
+%\setbeamercolor{normal text}{bg=red!12} % set background color
+%\setbeamercolor{normal text}{bg=mybackground} % set background color
+
+%********** fonts settings **********
+\usepackage{fontspec,xunicode,xltxtra}
+\setmainfont{Times New Roman}
+%\setsansfont{Source Sans Pro} % beamer默认使用sans font
+%\setmonofont{Source Sans Pro}
+
+%********** new fonts commands **********
+%\newfontfamily\SourceSansPro{Source Sans Pfro}
+
+%********** Chinese fonts input **********
+\usepackage{xeCJK}
+\setCJKmainfont{宋体}
+\setCJKsansfont{宋体}
+\setCJKmonofont{宋体}
+\XeTeXlinebreaklocale "zh"
+\XeTeXlinebreakskip=0pt plus 1pt minus 0.1pt
+
+\renewcommand{\today}{\number\month 月 \number\day 日, ~\number\year 年}%中文日期
+%\renewcommand{\today}{\CJKnumber\year 年 \CJKnumber\month 月 \CJKnumber\day 日}
+
+%********** using packages **********
+\usepackage{metalogo} % for XeTeX, XeLaTeX logo
+\usepackage{listings} % for listing source code
+% listings settings
+\lstset{
+  language=Java,
+  numbers=left,
+  numberstyle=\scriptsize,
+  frame=none,
+  xleftmargin=2.5em,
+  flexiblecolumns=false,
+  basicstyle=\ttfamily\scriptsize,
+  breaklines=true,
+  extendedchars=true,
+  escapechar=\%,
+  texcl=true,
+  showstringspaces=false,
+  %keywordstyle=\bfseries,
+  keywordstyle=\color{black},%\color{cyan},
+  commentstyle=\scriptsize,%\tiny\color{blue}\slshape,
+  tabsize=4,
+  backgroundcolor=\color{gray!20}
+}
+
+\usepackage{minted}
+\newminted{java}{linenos,
+    numbersep=6pt,fontfamily=tt,
+    xleftmargin=.1\textwidth,xrightmargin=.1\textwidth,framerule=1pt,
+    frame=leftline}
+
+
+%********** colors and drawing pictures **********
+%\usepackage{xcolor} % beamer 自动加载xcolor
+\usepackage{graphicx}
+\usepackage{fancybox}
+
+%********** Misc **********
+\usepackage{verbatim}
+%%% for bookmarks
+\usepackage{hyperref}
+%********** hyperref settings **********
+\hypersetup{
+  breaklinks=true,
+  bookmarksnumbered=true,
+  bookmarksopen=true,
+  pdfborder=1,
+  breaklinks,
+  colorlinks,
+  linkcolor=cyan,
+  filecolor=black,
+  urlcolor=blue,
+  citecolor=green
+}
+
+

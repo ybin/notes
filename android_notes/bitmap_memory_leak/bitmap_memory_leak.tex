@@ -1,0 +1,142 @@
+﻿\documentclass{beamer}
+
+\input{../../styles/beamer_preamble}
+\input{../../styles/tikz_preamble}
+
+%********** title page settings **********
+\title{一种查找\texttt{Bitmap}内存泄露的简易方法}
+\author{孙延宾}
+\institute{西安$\cdot$业务软件开发一部$\cdot$~\texttt{ZTE}}
+\date{\today}
+
+\begin{document}
+  %*************** title page *****************
+  \begin{frame}[plain]
+    \titlepage
+  \end{frame}
+  %*************** title page *****************
+
+  \tt
+
+  \begin{frame}{概括}
+  \begin{framedtext}
+    MAT分析的内存泄露结论很详细，但是如何对应到代码中却比较麻烦(有时)，
+    而通过将泄露的Bitmap对象转换为可见的png图片(或者别的格式)，结合代码，内存泄露点一目了然。
+  \end{framedtext}
+  \end{frame}
+
+  \begin{frame}{需要的工具}
+  \begin{framedtext}
+    \begin{itemize}
+      \item MAT -- Memory Analyzer Tool
+      \item ImageMagick -- 一个图形转换工具
+    \end{itemize}
+  \end{framedtext}
+  \end{frame}
+
+  \begin{frame}{Step 1}
+  \begin{framedtext}
+    使用MAT获得分析结果，具体操作请参考MAT使用手册。
+  \end{framedtext}
+  \end{frame}
+
+  \begin{frame}
+    \begin{figure}
+      \centering
+      % Requires \usepackage{graphicx}
+      \includegraphics[width=.8\textwidth]{picturedir/mat_total.png}\\
+      \caption{MAT的分析结果总括}\label{git:matresult}
+    \end{figure}
+  \end{frame}
+
+  \begin{frame}{Step 2}
+  \begin{framedtext}
+    切换到dominator\_tree视图，\\
+    找到泄露的android.graphics.Bitmap对象。
+  \end{framedtext}
+  \end{frame}
+
+  \begin{frame}
+    \begin{figure}
+      \centering
+      % Requires \usepackage{graphicx}
+      \includegraphics[width=.8\textwidth]{picturedir/bitmap_set.png}\\
+      \caption{泄露的Bitmap对象}\label{fig:bitmap}
+    \end{figure}
+  \end{frame}
+
+  \begin{frame}{Step 3}
+  \begin{framedtext}
+    选择其中一个Bitmap对象，查看其属性。
+  \end{framedtext}
+  \end{frame}
+
+  \begin{frame}
+    \begin{figure}
+      \centering
+      % Requires \usepackage{graphicx}
+      \includegraphics[width=.6\textwidth]{picturedir/bitmap_attr.png}\\
+      \caption{Bitmap对象的属性}\label{fig:attr}
+    \end{figure}
+  \end{frame}
+
+  \begin{frame}{Step 4}
+  \begin{framedtext}
+    在mBuffer行点击右键：\\
+    Copy $\Rightarrow$ Copy data to file\\
+    将数据保存为bitmap.rgba文件，并记下宽、高值：
+    mWidth、mHeight。
+  \end{framedtext}
+  \end{frame}
+
+  \begin{frame}{Step 5}
+  \begin{framedtext}
+    使用ImageMagic软件提供的convert命令
+    将数据文件bitmap.rgba转换为png文件。
+  \end{framedtext}
+  \end{frame}
+
+  \begin{frame}
+  \gitcmd{
+  \begin{tabular}{rl}
+    convert & -depth 8 \\
+            & -size \textcolor{cyan}{mWidth}x\textcolor{cyan}{mHeight} \\
+            & bitmap.rgba output.png \\
+  \end{tabular}
+  }
+  \end{frame}
+
+  \begin{frame}{Final}
+  \begin{framedtext}
+    查看output.png立刻就知道哪个文件被泄露了。
+  \end{framedtext}
+  \end{frame}
+
+  \begin{frame}{P.S.1}
+    \begin{framedtext}
+      释放ImageView中Bitmap的方法：
+    \end{framedtext}
+  \end{frame}
+
+  \begin{frame}
+    \lstinputlisting{srcdir/imageview.java}
+  \end{frame}
+
+  \begin{frame}{P.S.2}
+    \begin{framedtext}
+      释 "background" 中Bitmap的方法：
+    \end{framedtext}
+  \end{frame}
+
+  \begin{frame}
+    \lstinputlisting{srcdir/background.java}
+  \end{frame}
+
+  \begin{frame}
+    \begin{center}
+      \Large
+      \textless/END\textgreater
+    \end{center}
+  \end{frame}
+
+\end{document}

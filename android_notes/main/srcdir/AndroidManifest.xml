@@ -1,0 +1,14 @@
+<receiver android:name=".ScreenBroadcastReceiver"
+	android:enabled="true"
+	android:exported="false" >
+	<intent-filter>
+		<action android:name="android.intent.action.SCREEN_OFF" />
+		<action android:name="android.intent.action.SCREEN_ON" />
+	</intent-filter>
+</receiver>
+
+<service
+	android:name=".ReceiverService"
+	android:enabled="true"
+	android:exported="true" >
+</service>

@@ -1,0 +1,189 @@
+﻿\documentclass{article}
+
+\input{../styles/article_preamble}
+
+\sybtitle{\TeX{} family Notes}
+\sybauthor{孙延宾}
+\sybdate{\today}
+
+
+\begin{document}
+  \tt % I love Typewriter font.
+
+%%%%%%%% the title page and toc %%%%%%%%%%
+  \pagestyle{header}
+  \sybmaketitle
+  \tableofcontents
+  \newpage
+
+%%%%%%% the main content %%%%%%%%%
+  \pagestyle{main}
+  \setcounter{page}{1}
+
+  \section[newif macro]{\bs newif macro}
+  \bs newif 宏语法：
+  \cmd{\bs newif\bs if\lt csname\gt}
+  %\\[.5em]
+  %\hspace*{4ex}\bs newif\bs if\lt csname\gt \\[.5em]
+  该定义一次性定义了三个宏：
+  \begin{description}
+    \item[\bs if\lt csname\gt:] 条件判断语句
+    \item[\bs\lt csname\gt true:] 调用这个宏会使得\bs if\lt csname\gt 中的条件判断为"true"
+    \item[\bs\lt csname\gt false] 调用这个宏会使得\bs if\lt csname\gt 中的条件判断为"false"
+  \end{description}
+  下面是一个示例：
+
+  \begin{latexcode}
+\newif\ifboy
+\newif\ifgirl
+\ifboytrue
+\ifboy{I love you, son!}\fi
+\ifgirl{I love you, daughter!}\fi
+  \end{latexcode}
+
+  运行结果：
+  \newif\ifboy
+  \newif\ifgirl
+  \boytrue
+  \ifboy{I love you, son!}\fi
+  \ifgirl{I love you, daughter!}\fi
+
+  \section[loop macro]{loop macro}
+  \bs loop宏的语法：
+  \cmd{\bs loop\lt control sequences\gt \lt conditional sequence\gt \lt control sequences\gt \bs repeat}
+  首先执行\bs loop后面的控制序列，然后，如果条件判断为true，就接着执行后面的控制序列，并循环之；
+  如果条件判断为false，就退出循环。
+
+  下面是一个嵌套循环的示例：
+
+  \begin{latexcode}
+\vbox{
+  \count100=9
+  \loop
+    \count101=65 % ASCII `A'
+    \advance\count100 by-1
+    \hbox{% \loop的参数中不允许有\par等换行命令
+          % 这里我们利用Tex的"模式"进行排版：
+          % TeX默认进入vertical mode，然后使用\hbox进入stricted horizontal mode
+          % 从而避免了换行命令。
+      \loop
+      \char\count101 \the\count100
+      \advance\count101 by1
+      \ifnum\count101<73
+      \space
+      \repeat
+    }
+  \ifnum\count100>0
+  \repeat
+}
+  \end{latexcode}
+
+  替换计数寄存器之后，代码更易读：
+
+  \begin{latexcode}
+\vbox{
+  \newcount\num % \loop的参数中不能使用\newcount宏
+  \newcount\chr % 不能使用\par宏
+  \num=9
+  \loop
+    \chr=65 % ASCII `A'
+    \advance\num by-1
+    \hbox{% \loop的参数中不允许有\par等换行命令
+          % 这里我们利用Tex的"模式"进行排版：
+          % TeX默认进入vertical mode，然后使用\hbox进入stricted horizontal mode
+          % 从而避免了换行命令。
+      \loop
+      \char\chr \the\num
+      \advance\chr by1
+      \ifnum\chr<73
+      \space
+      \repeat
+    }
+  \ifnum\num>0
+  \repeat
+}
+  \end{latexcode}
+
+  运行结果：
+  \runcode{
+    \vbox{
+      \count100=9
+      \loop
+        \count101=65 % ASCII `A'
+        \advance\count100 by-1
+        \hbox{% \loop的参数中不允许有\par等换行命令
+              % 这里我们利用Tex的"模式"进行排版：
+              % TeX默认进入vertical mode，然后使用\hbox进入stricted horizontal mode
+              % 从而避免了换行命令。
+          \loop
+          \char\count101 \the\count100
+          \advance\count101 by1
+          \ifnum\count101<73
+          \space
+          \repeat
+        }
+      \ifnum\count100>0
+      \repeat
+    }
+  }
+
+  \section[文本的分散对齐]{文本的分散对齐}
+  在\TeX{}中，一行文本是要充满行宽的，在hbox中，文本要充满box的宽度，否则
+  \TeX{}的断段成行算法也就可以省略了。所以分散对齐其实是没有必要的，\TeX{}
+  一直都是这么做的，但是如果一行中只有两个单词，为何没有在行端各放置一个呢？
+  这是因为一段的最后一行时，\TeX{}会自动将该行的\bs hbox长度设置为文本的自然长度。
+  这里我们绕过\TeX{}的断行机制，使用\bs hbox来做实验。\par
+  \begin{latexcode}
+\hbox{word1 word2 word3}\par
+\hbox to \hsize{word1 word2 word3}\par
+\hbox spread 1in{word1 word2 word3}
+  \end{latexcode}
+
+  结果如下：
+  \runcode{
+    \hbox{word1 word2 word3}\par
+    \hbox to \hsize{word1 word2 word3}\par
+    \hbox spread 1in{word1 word2 word3}
+  }
+  \bs hbox的to参数设置box的宽度；spread参数将box的宽度在文本自然宽度的基础上增加一段。
+
+  另外，\bs break宏告诉\TeX{}“在此处断行”，之前的行宽将为\bs hsize，之后的文本视其
+  是否为段尾行而定，所以\bs break宏有可能造成之前的行填充不满而出现“分散对齐”的现象。
+  此时可以使用\bs filbreak，它的功能相对于\bs hfil\bs break，于是之前的行就会左对齐了。
+
+  \cstr{\tolerance}, \cstr{\penalty}, \cstr{\hfuzz}, \cstr{\hbadness}的区别！
+
+
+  \section[显示特殊字符]{显示特殊字符}
+  像“\textvisiblespace”(空格)、“\bs”(backslash，反斜杠)，甚至“任何字符”都可以这样来显示：\\
+  在\TeX{}中：
+  \begin{enumerate}
+    \item \bs char\lt int\gt，如\bs char92(backslash)，\{\bs tt\bs char32\}
+    \item \bs char\lt'octal\gt，如\bs char'134
+    \item \bs char\lt"hex\gt，如\bs char"5C
+    \item \bs chardef\bs cs=\lt int\gt
+  \end{enumerate}
+  空格符在有些字体中没有，所以使用\bs tt字体。
+
+  在\LaTeX{}中：
+  \begin{enumerate}
+    \item \bs symbol\{number\}，如\bs symbol\{'134\}
+  \end{enumerate}
+  但是在\LaTeX{}中，空格符显示不出来，必须使用\bs textvisiblespace 才行。
+
+  \section[rules]{rules}
+  rule就是一个黑色盒子，表现出来就是一个黑色的格子。
+  \begin{description}
+    \item[\bs vrule] 水平方向增长的黑格子，默认宽度为0.4pt，默认高度为0pt
+    \item[\bs hrule] 竖直方向增长的黑格子，默认高度为0.4pt，默认宽度为\bs hsize
+  \end{description}
+  示例：\\
+  \bs vrule width 1em height 1ex : \vrule width 1em height 1ex\\
+  \bs hrule width 1em height .4pt : \hrule width 1em height .4pt\par
+  \bs hrule 默认是从行首开始的，所以黑格子跑到行首去了，而且
+  它始终是在baseline下面的。
+
+
+
+  %\expandafter\show\csname LaTeX \endcsname
+\end{document}
