@@ -16,3 +16,4 @@
 *.pyg
 
 *.prj
+release/*
