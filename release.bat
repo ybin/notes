@@ -10,3 +10,6 @@ if not exist release mkdir release
 for /r %%i in (.) do (
 	if exist "%%i\*.pdf" xcopy /Y "%%i\*.pdf" ".\release\" >nul 2>&1
 )
+:: create tarball, use gzip to compress,
+:: if 'tar' is not available, do not show the error message.
+tar zcf all.tar.gz release/ 2>nul

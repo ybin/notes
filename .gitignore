@@ -17,3 +17,5 @@
 
 *.prj
 release/*
+*.zip
+*.tar.gz
