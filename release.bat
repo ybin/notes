@@ -6,6 +6,8 @@
 ::
 
 if not exist release mkdir release
+:: clear release folder
+del /Q release\*
 :: copy all pdf files to folder: .\release\
 for /r %%i in (.) do (
 	if exist "%%i\*.pdf" xcopy /Y "%%i\*.pdf" ".\release\" >nul 2>&1
