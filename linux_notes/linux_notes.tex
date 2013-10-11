@@ -27,14 +27,14 @@
   FAQ：文件名何时该用双引号括起来，何时又可以省略呢？\\
   答：使用双引号是为了防止文件名中包含空格，尤其是包含通配符时，如"*.zip"，其他情况下
   可以省略双引号。
-  
+
   \subsection[通过文件名查找文件]{通过文件名查找文件}
   默认搜索路径为当前路径：
   \cmd{find -name "myfile.c"}
-  
+
   忽略文件名的大小写：
   \cmd{find -iname "myfile.c"}
-  
+
   \subsection[按照文件类型查找]{按照文件类型查找}
   查找当前目录下的socket文件：
   \cmd{find . -type s}
@@ -46,26 +46,26 @@
   \cmd{find . -type f -name ".*"}
   查找当前目录下的隐藏目录：
   \cmd{find . -type d -name ".*"}
-  
+
   \subsection[相反匹配]{相反匹配}
   -not可以将“紧随”其后的(一个)条件置反。
   \cmd{find -not -iname "myfile.c"}
-  
+
   \subsection[查找空文件]{查找空文件}
   查找当前目录下的所有空文件：
   \cmd{find . -empty}
-  
+
   \subsection[按照文件大小查找]{按照文件大小查找}
   文件大小的排序需要借助其他命令，不过Linux shell就是干这个的，
   管道可不是徒有虚名哦！
-  
+
   查找最大的5个文件：
   \cmd{find . -type f -exec ls -s \{\} \bs; | sort -n -r | head -5}
   ls的-s表示打印“文件”的大小；sort的-n表示按照number计算大小，-r表示reverse。
-  
+
   查找最小的5个非空文件：
   \cmd{find . -not -empty -type f -exec ls -s \{\} \bs; | sort -n | head -5}
-  
+
   其实find本身提供-size选项：
   查找大于100M的文件：
   \cmd{find . -size +100M}
@@ -73,25 +73,25 @@
   \cmd{find . -size -100M}
   查找等于100M的文件：
   \cmd{find . -size 100M}
-  
+
   \subsection[通过与其他文件比较修改时间查找文件]{通过与其他文件比较修改时间查找文件}
   这个功能确实比较少见。
-  
+
   查找比myfile.c更新的文件：
   \cmd{find -newer "myfile.c"}
-  
-  
+
+
   \subsection[限定搜索目录的深度]{限定搜索目录的深度}
   -mindepth、-maxdepth可以限定find命令的搜索最小、最大深度，
   1表示当前搜索目录，数字表示“层级数”而非“第几级”：
   \cmd{find -mindepth 3 -maxdepth 5 -name "myfile.c"}
-  
+
   \subsection[在查找到的文件上执行命令]{在查找到的文件上执行命令}
   可以这样理解："\{\}"代表查找到的文件名，"\{\}"与"\bs;"之间的内容为要执行命令的参数。
   \cmd{find -iname "myfile.c" -exec mv \{\} myfile.c.new \bs;}
   充分利用"\{\}"：
   \cmd{find -iname "myfile.c" -exec mv \{\} \{\}.new \bs;}
-  
+
   \subsection[find与alias联合]{find与alias联合}
   删除大于100M的zip文件可以这样做：
   \cmd{find . -type f -name *.zip -size +100M -exec rm -i \{\} \bs;}
@@ -99,12 +99,53 @@
   \cmd{alias rm100m="find . -type f -name \bs"*.zip\bs" -size +100M -exec rm -i \{\} \bs;"}
   类似的：
   \cmd{alias rm1g="find . -type f -name \bs"*.zip\bs" -size +1G -exec rm -i \{\} \bs;"}
-  
+
   \subsection[执行多条命令]{执行多条命令}
   类似于filter(过滤器)，满足条件N就执行命令N。
   \cmd{find . \bs( -name "*.java" -exec "java file: \{\} \bs; \bs), \bs\\
         \hspace*{15ex}\bs( -name "*.xml" -exec "xml file: \{\} \bs; \bs)}
   注意：\par
   \bs(、\bs)、\bs;以及中间的逗号，他们两边的空格不能丢，"*.java"、"*.xml"两边的引号也不能丢，这点儿比较蛋疼啊！
+  
+  
+  \section[chmod命令修改文件权限]{chmod命令修改文件权限}
+  文件权限的表示：\par
+  \begin{center}
+  \begin{tabular}{|c|c|c|}
+    \hline
+    权限 & 字母表示 & 数字表示 \\\hline
+    read & r & 4 \\\hline
+    write & w & 2 \\\hline
+    execute & x & 1 \\\hline
+  \end{tabular}
+  \end{center}
+  
+  文件权限的类别：\par
+  \begin{center}
+  \begin{tabular}{|c|c|}
+    \hline
+    权限类别 & 字母表示 \\\hline
+    user & u \\\hline
+    group & g \\\hline
+    other & o \\\hline
+  \end{tabular}
+  \end{center}
+  
+  使用chmod修改文件权限：
+  \cmd{chmod \lt 类别\gt \lt +|-\gt\lt 权限\gt\ file1 file2 ...}
+  “类别”的可选项有u、g、o和a(all)，权限的可选项有r、w、x，
+  “+”表示增加权限，“-”表示减掉权限。
+  
+  例如：\par
+  为所有类别赋予可执行权限：
+  \cmd{chmod a+x filename}
+  增加group的写入权限、去掉other的执行权限：
+  \cmd{chmod g+w,o-x file1 file2 ...}
+  注意：“g+w,o-x”之间不要有空格！
+  
+  当然，也可以使用数字计算出各个类别的权限，然后一次性
+  处理这些权限，如user可读写、group只读、other只读：
+  \cmd{chmod 644 file1 file2 ...}
+  
 
 \end{document}
