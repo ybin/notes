@@ -225,7 +225,13 @@
   示例：
   \cmd{adb shell top -d 5 -s rss -m 10 -n 3}
   每隔5s显示一次系统内存占用量最多的10个进程，总共显示3次。
-
+  
+  \section[使用screencap命令进行屏幕截图]{使用screencap命令进行屏幕截图}
+  利用screencap在电脑上通过adb shell进行手机屏幕截图，
+  截取的图片保存到当前目录下，文件名以当前系统时间命名，
+  所以可以通过“程序”实现自动截图。Windows批处理如下：\par\bigskip
+  \inputminted[linenos,tabsize=4,bgcolor=srcbg]{bash}{srcdir/capture.bat}
+  
 
   \part[Android Notes List]{Android笔记列表}
   \section[关于package的UID]{关于package的UID}
