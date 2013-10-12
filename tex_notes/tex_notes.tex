@@ -183,6 +183,43 @@
   \bs hrule 默认是从行首开始的，所以黑格子跑到行首去了，而且
   它始终是在baseline下面的。
 
+  
+  \section[特殊变量]{特殊变量}
+  下面是一些特殊变量的说明及使用方法。
+  
+  \subsection[hbadness]{\bs hbadness}
+  \bs hbox的badness超过hbadness时，\TeX{}会报告警告信息，
+  如\bs hbox overful或者underful了。默认值是200，
+  10000被认为是无限大，所以，如果不想看到那些烦人的警告信息，
+  可以这样设置：
+  \cmd{\bs hbadness=10000}
+  \bs vbadness与此类似。
+  
+  \subsection[hfuzz]{\bs hfuzz}
+  \bs hfuzz告诉\TeX{}：\bs hbox超出\bs hfuzz长度并不算overful。
+  所以如果\bs hbox超出长度不超过\bs hfuzz时，就不算是overful，
+  \TeX{}就不会报告警告信息：
+  \cmd{\bs hfuzz=2pt}
+  \bs vfuzz与此类似。
+  
+  
+  \section[寄存器]{寄存器}
+  \TeX{}预先定义有count、dimen、skip、toks等几种寄存器，每种寄存器都有
+  0-255共256个。
+  
+  \subsection[count寄存器]{count寄存器}
+  可以直接使用，如：
+  \cmd{\bs count42=1024}
+  也可以使用\bs countdef为count寄存器取个名字：
+  \cmd{\bs countdef\bs mycount=42}
+  然后就可以用同样的方法使用该寄存器了：
+  \cmd{\bs mycount=1024}
+  然而，并不推荐直接使用\bs countdef指令，如果两个package
+  都使用该指令将同一个count寄存器取了两个名字，就会造成混乱，
+  可以使用plain\TeX{}的\bs newcount指令：
+  \cmd{\bs newcount\bs mynewcount}
+  使用者并不知道定义的寄存器跟256个中的哪个对应，
+  但是\bs newcount可以保证不会重复分配。
 
 
   %\expandafter\show\csname LaTeX \endcsname

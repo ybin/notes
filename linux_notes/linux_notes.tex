@@ -106,8 +106,46 @@
         \hspace*{15ex}\bs( -name "*.xml" -exec "xml file: \{\} \bs; \bs)}
   注意：\par
   \bs(、\bs)、\bs;以及中间的逗号，他们两边的空格不能丢，"*.java"、"*.xml"两边的引号也不能丢，这点儿比较蛋疼啊！
+
+
+  \section[grep命令使用举例]{grep命令使用举例}
+  grep命令用于从文件中搜索字符串，基本命令格式：
+  \cmd{grep [options] <PATTERN> <file-list>}
+  其中<PATTERN>为正则表达式，<file-list>可以使用通配符，如"*.c"。
   
+  \subsection[在文件中搜索指定字符串]{在文件中搜索指定字符串}
+  在file.c、file.h两个文件中搜索字符串"return"：
+  \cmd{grep return file.c file.h}
+  或者：
+  \cmd{grep "return" file.c file.h}
+  什么时候pattern需要使用引号呢？当pattern中包含空格的时候！
   
+  \subsection[使用正则表达式]{使用正则表达式}
+  pattern使用正则表达式：
+  \cmd{grep "return .*;" file.c file.h}
+  
+  \subsection[使用通配符]{使用通配符}
+  file list可以使用通配符，如在当前目录(不包括子目录)中搜索字符串：
+  \cmd{grep "return" *}
+  
+  \subsection[使用options]{使用options}
+  grep的options可以做很多事情：
+  \begin{coloredenumerate}
+    \item -r, --recursive: 递归搜索
+    \item -w, --word-regexp: 强制pattern匹配单个word
+    \item -i, --ignore-case: 忽略pattern的大小写
+    \item -v, --invert-match: 选中未选中的行
+    \item -n, --line-number: 在输出中显示行所在的行号
+    \item -l, --files-with-matches: 只列出包含pattern的文件名
+    \item -c, --count: 显示pattern在文件中的匹配数量
+  \end{coloredenumerate}
+   
+  \subsection[综合起来]{综合起来}
+  在当前目录下，递归搜索所有文件，查找字符串：
+  \cmd{grep -r "is.*file" *}
+  注意正则表达式和通配符的区别！
+
+
   \section[chmod命令修改文件权限]{chmod命令修改文件权限}
   文件权限的表示：\par
   \begin{center}
@@ -119,7 +157,7 @@
     execute & x & 1 \\\hline
   \end{tabular}
   \end{center}
-  
+
   文件权限的类别：\par
   \begin{center}
   \begin{tabular}{|c|c|}
@@ -130,22 +168,22 @@
     other & o \\\hline
   \end{tabular}
   \end{center}
-  
+
   使用chmod修改文件权限：
   \cmd{chmod \lt 类别\gt \lt +|-\gt\lt 权限\gt\ file1 file2 ...}
   “类别”的可选项有u、g、o和a(all)，权限的可选项有r、w、x，
   “+”表示增加权限，“-”表示减掉权限。
-  
+
   例如：\par
   为所有类别赋予可执行权限：
   \cmd{chmod a+x filename}
   增加group的写入权限、去掉other的执行权限：
   \cmd{chmod g+w,o-x file1 file2 ...}
   注意：“g+w,o-x”之间不要有空格！
-  
+
   当然，也可以使用数字计算出各个类别的权限，然后一次性
   处理这些权限，如user可读写、group只读、other只读：
   \cmd{chmod 644 file1 file2 ...}
-  
+
 
 \end{document}
