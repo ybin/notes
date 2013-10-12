@@ -112,22 +112,22 @@
   grep命令用于从文件中搜索字符串，基本命令格式：
   \cmd{grep [options] <PATTERN> <file-list>}
   其中<PATTERN>为正则表达式，<file-list>可以使用通配符，如"*.c"。
-  
+
   \subsection[在文件中搜索指定字符串]{在文件中搜索指定字符串}
   在file.c、file.h两个文件中搜索字符串"return"：
   \cmd{grep return file.c file.h}
   或者：
   \cmd{grep "return" file.c file.h}
   什么时候pattern需要使用引号呢？当pattern中包含空格的时候！
-  
+
   \subsection[使用正则表达式]{使用正则表达式}
   pattern使用正则表达式：
   \cmd{grep "return .*;" file.c file.h}
-  
+
   \subsection[使用通配符]{使用通配符}
   file list可以使用通配符，如在当前目录(不包括子目录)中搜索字符串：
   \cmd{grep "return" *}
-  
+
   \subsection[使用options]{使用options}
   grep的options可以做很多事情：
   \begin{coloredenumerate}
@@ -139,7 +139,7 @@
     \item -l, --files-with-matches: 只列出包含pattern的文件名
     \item -c, --count: 显示pattern在文件中的匹配数量
   \end{coloredenumerate}
-   
+
   \subsection[综合起来]{综合起来}
   在当前目录下，递归搜索所有文件，查找字符串：
   \cmd{grep -r "is.*file" *}
@@ -184,6 +184,38 @@
   当然，也可以使用数字计算出各个类别的权限，然后一次性
   处理这些权限，如user可读写、group只读、other只读：
   \cmd{chmod 644 file1 file2 ...}
-
+  
+  
+  \section[rsync命令及其核心算法]{rsync命令及其核心算法}
+  问题描述：
+  \begin{coloredenumerate}
+    \item 在两台电脑之间进行文件同步，如local同步到server
+    \item 但是又不想把local的整个文件传送到server
+    \item 而是只传递文件的差异部分
+  \end{coloredenumerate}
+  用普通的diff方法查找文件差异时，需要将两个文件放到同一台电脑上，
+  这就要求local将整个文件发送到server上，这与第二条相悖。
+  
+  那要如何才能做到不用传递整个文件却能比较文件差异呢？
+  rsync的做法是将整个文件分割成小块儿(chunk)，然后将每一小块儿映射成
+  checksum字符串，可以认为chunk和checksum之间是一一映射。
+  
+  这样，server将所有chunk的checksum发送给local，local按照chunk大小
+  读取文件流，取一个chunk就计算checksum，如果在server发送过来的checksum
+  中有这个checksum，就表示server上有这一部分，不用发送了；如果没有，
+  就略过一个字节，再读取一个chunk，然后重复比对checksum的过程。
+  
+  最终local上的文件会被分解为多个部分，其中有些部分在server上已经存在，
+  local只做一个标识(和chunk编号)，其他部分在server上没有(这些部分大小不等，
+  因为当初分割的时候是一个字节一个字节找出这些部分来的)，需要编号然后
+  发送给server。
+  
+  server端最终会有一个chunk列表(大小不等)，根据编号重组文件，server
+  上本来就有的chunk直接拿来使用，本来没有的，local已经发送过来了，
+  于是整个文件就可以重新组合起来。
+  
+  该算法之所以能减小数据发送量，关键在于checksum映射，将数据chunk
+  映射为checksum字符串，从而减小了数据发送量。
+  
 
 \end{document}
