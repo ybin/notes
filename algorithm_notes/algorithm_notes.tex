@@ -1,6 +1,7 @@
 ﻿\documentclass[a4paper,11pt]{article}
 
 \input{../styles/article_preamble}
+\input{../styles/tikz_preamble}
 
 \sybtitle{Algorithm Notes}
 \sybauthor{孙延宾}
@@ -22,6 +23,13 @@
   aaa
 
   \section[伙伴算法简易实现]{伙伴算法简易实现}
+  \begin{center}
+    % Requires \usepackage{graphicx}
+    \input{inputdir/full_binary_tree}
+    %\caption{buddy system}\label{fig:buddy}
+  \end{center}
+  
+  
   从伙伴算法看满二叉树的一些特性：
   \begin{description}
     \item[total\_leaf\_size] 满二叉树的叶子节点总数
@@ -41,7 +49,7 @@
            & = (index + 1) * node\_size - total\_leaf\_size \\
   \end{align*}
   可见，无论哪个level，第一个左子树(最左边的节点)对应到叶子节点数组中的下标总是0.
-  
+
   \section[字符串匹配的KMP算法]{字符串匹配的KMP算法}
 
   \section[字符串匹配的Boyer-Moore算法]{字符串匹配的Boyer-Moore算法}

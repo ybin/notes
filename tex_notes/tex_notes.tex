@@ -222,8 +222,42 @@
   使用者并不知道定义的寄存器跟256个中的哪个对应，
   但是\bs newcount可以保证不会重复分配。
 
-  \part[tikz笔记]{tikz笔记}
+  \section[行间距与段间距]{行间距与段间距}
+  在\TeX{}中是通过变量来控制行间距和段间距的。
+  \subsection[行间距]{行间距}
+  行间距用下面几个变量来控制：
+  \cmd{\bs baselineskip, \bs prevdepth, \bs lineskiplimit, \bs lineskip}
+  \begin{coloredenumerate}
+    \item \bs baselineskip: 两个行的baseline之间的距离，类型为glue
+    \item \bs prevdepth: 上一行组成的box的深度(depth)
+    \item \bs lineskiplimit: 一个距离值
+    \item \bs lineskip: 一个距离值
+  \end{coloredenumerate}
+  它们之间的关系如下：\par
+  \begin{latexcode}
+    \def\gap{}
+    \L = \baselineskip - \prevdepth - "current line height"
+    \if \L < \lineskiplimit
+      \gap = \L
+    \else
+      \gap = \lineskip
+  \end{latexcode}
+  然后，\TeX{}先将\bs gap高度的空白放置到当前位置，再将当前行放置在空白之下，
+  这样就完成了在两行之间插入空白的任务。
+  \subsection[段间距]{段间距}
+  设置段间距为一个行高距离(两个baseline之间的距离)：
+  \cmd{\bs parskip = \bs baselineskip}
+  设置段落缩进为两个字符宽度：
+  \cmd{\bs parindent = 2em}
+
   
+
+
+  \part[tikz笔记]{tikz笔记}
+
+  \section[使用tikz画树状图]{使用tikz画树状图}
+  \section[使用tikz画matrix]{使用tikz画matrix}
+
   \part[beamer笔记]{beamer笔记}
 
   %\expandafter\show\csname LaTeX \endcsname

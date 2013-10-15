@@ -1,0 +1,135 @@
+﻿\begin{tikzpicture}
+  [every node/.style={minimum size=20pt, inner sep=2pt},
+   tree-node/.style={draw,circle},
+   side-node/.style={},
+   memo-node/.style={draw,rectangle},
+   level 1/.style={sibling distance=160pt}, % 8 * 20pt
+   level 2/.style={sibling distance=80pt}, % 4 * 20pt
+   level 3/.style={sibling distance=40pt}, % 2 * 20pt
+   level 4/.style={sibling distance=20pt}] % 1 * 20pt
+  \node [tree-node] (root) {0}
+    child {
+      node [tree-node] {1}
+        child {
+          node [tree-node] {3}
+            child {
+              node [tree-node] {7}
+                child {
+                  node [tree-node] {15}
+                    child [grow=down] {
+                      node [memo-node] {} edge from parent[draw=none]
+                        child [grow=left] {node [side-node] {memory} edge from parent[draw=none]}
+                    }
+                    child [grow=left] {
+                      node [side-node] {node\_size=1} edge from parent[draw=none]
+                        child [grow=up] {
+                          node [side-node] {node\_size=2} edge from parent[draw=none]
+                            child [grow=up] {
+                              node [side-node] {node\_size=4} edge from parent[draw=none]
+                                child [grow=up] {
+                                  node [side-node] {node\_size=8} edge from parent[draw=none]
+                                    child [grow=up] {
+                                      node [side-node] {node\_size=16} edge from parent[draw=none]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                child {
+                  node [tree-node] {16}
+                    child [grow=down] {node [memo-node] {} edge from parent[draw=none]}
+                }
+            }
+            child {
+              node [tree-node] {8}
+                child {
+                  node [tree-node] {17}
+                    child [grow=down] {node [memo-node] {} edge from parent[draw=none]}
+                }
+                child {
+                  node [tree-node] {18}
+                    child [grow=down] {node [memo-node] {} edge from parent[draw=none]}
+                }
+            }
+        }
+        child {
+          node [tree-node] {4}
+            child {
+              node [tree-node] {9}
+                child {
+                  node [tree-node] {19}
+                    child [grow=down] {node [memo-node] {} edge from parent[draw=none]}
+                }
+                child {
+                  node [tree-node] {20}
+                    child [grow=down] {node [memo-node] {} edge from parent[draw=none]}
+                }
+            }
+            child {
+              node [tree-node] {10}
+                child {
+                  node [tree-node] {21}
+                    child [grow=down] {node [memo-node] {} edge from parent[draw=none]}
+                }
+                child {
+                  node [tree-node] {22}
+                    child [grow=down] {node [memo-node] {} edge from parent[draw=none]}
+                }
+            }
+        }
+    }
+    child {
+      node [tree-node] {2}
+        child {
+          node [tree-node] {5}
+            child {
+              node [tree-node] {11}
+                child {
+                  node [tree-node] {23}
+                    child [grow=down] {node [memo-node] {} edge from parent[draw=none]}
+                }
+                child {
+                  node [tree-node] {24}
+                    child [grow=down] {node [memo-node] {} edge from parent[draw=none]}
+                }
+            }
+            child {
+              node [tree-node] {12}
+                child {
+                  node [tree-node] {25}
+                    child [grow=down] {node [memo-node] {} edge from parent[draw=none]}
+                }
+                child {
+                  node [tree-node] {26}
+                    child [grow=down] {node [memo-node] {} edge from parent[draw=none]}
+                }
+            }
+        }
+        child {
+          node [tree-node] {6}
+            child {
+              node [tree-node] {13}
+                child {
+                  node [tree-node] {27}
+                    child [grow=down] {node [memo-node] {} edge from parent[draw=none]}
+                }
+                child {
+                  node [tree-node] {28}
+                    child [grow=down] {node [memo-node] {} edge from parent[draw=none]}
+                }
+            }
+            child {
+              node [tree-node] {14}
+                child {
+                  node [tree-node] {29}
+                    child [grow=down] {node [memo-node] {} edge from parent[draw=none]}
+                }
+                child {
+                  node [tree-node] {30}
+                    child [grow=down] {node [memo-node] {} edge from parent[draw=none]}
+                }
+            }
+        }
+    };
+\end{tikzpicture}
