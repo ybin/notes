@@ -1,6 +1,7 @@
 ﻿\documentclass[a4paper,11pt]{article}
 
 \input{../styles/article_preamble}
+\input{../styles/tikz_preamble}
 
 \sybtitle{Linux Notes}
 \sybauthor{孙延宾}
@@ -184,8 +185,8 @@
   当然，也可以使用数字计算出各个类别的权限，然后一次性
   处理这些权限，如user可读写、group只读、other只读：
   \cmd{chmod 644 file1 file2 ...}
-  
-  
+
+
   \section[rsync命令及其核心算法]{rsync命令及其核心算法}
   问题描述：
   \begin{coloredenumerate}
@@ -195,27 +196,29 @@
   \end{coloredenumerate}
   用普通的diff方法查找文件差异时，需要将两个文件放到同一台电脑上，
   这就要求local将整个文件发送到server上，这与第二条相悖。
-  
+
   那要如何才能做到不用传递整个文件却能比较文件差异呢？
   rsync的做法是将整个文件分割成小块儿(chunk)，然后将每一小块儿映射成
   checksum字符串，可以认为chunk和checksum之间是一一映射。
-  
+
   这样，server将所有chunk的checksum发送给local，local按照chunk大小
   读取文件流，取一个chunk就计算checksum，如果在server发送过来的checksum
   中有这个checksum，就表示server上有这一部分，不用发送了；如果没有，
   就略过一个字节，再读取一个chunk，然后重复比对checksum的过程。
-  
+
   最终local上的文件会被分解为多个部分，其中有些部分在server上已经存在，
   local只做一个标识(和chunk编号)，其他部分在server上没有(这些部分大小不等，
   因为当初分割的时候是一个字节一个字节找出这些部分来的)，需要编号然后
   发送给server。
-  
+
   server端最终会有一个chunk列表(大小不等)，根据编号重组文件，server
   上本来就有的chunk直接拿来使用，本来没有的，local已经发送过来了，
   于是整个文件就可以重新组合起来。
-  
+
   该算法之所以能减小数据发送量，关键在于checksum映射，将数据chunk
   映射为checksum字符串，从而减小了数据发送量。
   
+  \input{inputdir/linux_memory_layout}
+
 
 \end{document}

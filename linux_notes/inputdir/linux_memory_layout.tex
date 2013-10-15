@@ -1,0 +1,72 @@
+﻿\begin{tikzpicture}
+  [table/.style={
+      draw,
+      inner sep=0pt,
+      matrix of nodes,
+      nodes in empty cells,
+      nodes={
+        draw,
+        align=center,
+        text width=10cm,
+        minimum width=10cm,
+        outer sep=0pt,
+        inner sep=0pt
+      }
+   },
+   blank cell/.style={fill=white,minimum height=1cm},
+   non blank cell/.style={fill=cyan!30,minimum height=#1}
+  ]
+   \matrix (layout) [table,label={[align=center]90:{\bf Linux Memory Layout}}]
+   {
+     |[non blank cell=2cm](kernel space)| {
+        \textbf{Kernel Space}\\
+        User code can not read from nor write to these\\
+        addresses, doing so results in a Segmentation Fault}\\ % kernel space
+     |[blank cell](stack offset)|{}\\ % random stack offset
+     |[non blank cell=1cm]|{\textbf{Stack}(grows down)}\\ % stack
+     |[blank cell](mmap offset)|{}\\ % random mmap offset
+     |[non blank cell=2.5cm]|{
+        \textbf{Memory Mapping Segment}\\
+        File mappings\\
+        (include dynamic libraries and anynomous)\\
+        Example: /lib/libc.so}\\ % memory mapping segment
+     |[blank cell]|{}\\ % 
+     |[non blank cell=1cm](heap)|{\textbf{Heap}(grows up)}\\ % heap
+     |[blank cell](brk offset)|{}\\ % random brk offset
+     |[non blank cell=2cm](bss)|{
+        \textbf{BSS Segment}\\
+        Uninitialized static variables, filled with zeros.\\
+        Example: static char * userName;}\\ % bss
+     |[non blank cell=2.5cm](data)|{
+        \textbf{Data Segment}\\
+        Static variables initialized by the programmer.\\
+        Example: \\
+        static char* gonzo = "God's own prototype";}\\ % data segment
+     |[non blank cell=2cm](text)|{
+        \textbf{Text Segment}(ELF)\\
+        Stores the binary image of the process\\
+        (e.g. /bin/gonzo)}\\ % text segment
+     |[blank cell](user space)|{}\\
+   };
+   % comments
+   \draw [decorate,decoration={mirror,brace,amplitude=8pt,raise=2pt}]
+      (kernel space.north west) -- (kernel space.south west) node[midway,xshift=-.9cm]{1GB};
+   \draw [decorate,decoration={mirror,brace,amplitude=8pt,raise=2pt}]
+      (kernel space.south west) -- (user space.south west) node[midway,xshift=-.9cm]{3GB};
+   \node at ([xshift=2.8cm]kernel space.south east) {0xC0000000 == TAST\_SIZE};
+   \draw [decorate,decoration={brace,amplitude=8pt,raise=2pt}]
+      (stack offset.north east) -- (stack offset.south east) node[midway,xshift=2.4cm]{Random stack offset};
+   \draw [decorate,decoration={brace,amplitude=8pt,raise=2pt}]
+      (stack offset.south east) -- (mmap offset.east) node[midway,xshift=2.5cm]{RLIMIT\_STACK(e.g.8M)};
+   \draw [decorate,decoration={brace,amplitude=4pt,raise=2pt}]
+      (mmap offset.east) -- (mmap offset.south east) node[midway,xshift=2.3cm]{Random mmap offset};
+   \node at ([xshift=2.3cm]heap.north east) {program break brk};
+   \node at ([xshift=1.5cm]heap.south east) {start brk};
+   \draw [decorate,decoration={brace,amplitude=8pt,raise=2pt}]
+      (brk offset.north east) -- (brk offset.south east) node[midway,xshift=2.3cm]{Random brk offset};
+   \node at ([xshift=1.3cm]data.north east) {end\_data};
+   \node at ([xshift=1.5cm,yshift=.5em]data.south east) {start\_data};
+   \node at ([xshift=1.3cm,yshift=-.5em]text.north east) {end\_text};
+   \node at ([xshift=1.5cm]text.south east) {0x08048000};
+   \node at ([xshift=.6cm]user space.south east) {0};
+\end{tikzpicture}
