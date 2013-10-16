@@ -218,7 +218,36 @@
   该算法之所以能减小数据发送量，关键在于checksum映射，将数据chunk
   映射为checksum字符串，从而减小了数据发送量。
   
+  
+  \section[Linux系统内存布局]{Linux系统内存布局}
   \input{inputdir/linux_memory_layout}
+  
+  
+  \section[Java命令行使用方法]{Java命令行使用方法}
+  大家几乎都被IDE绑架了，谁还关注命令行java呢？\par
+  注意：java的参数都是使用“-”的，不论长格式还是短格式，这跟GNU格式不符。
+  \subsection[编译命令：javac]{编译命令：javac}
+  \cmd{javac -classpath </path/to/folder;/path/to/.jar;/path/to/.zip>\\
+        \hspace*{5em}-sourcepath </path/to/folder;/path/to/.jar;/path/to/.zip>}
+  -classpath的值可以是folder、.jar、.zip，其中包含的都是.class文件；\\
+  -sourcepath的值可以是folder、.jar、.zip，其中包含的都是.java文件。
+  
+  \subsection[运行命令：java]{运行命令：java}
+  \cmd{javac -classpath </path/to/folder;/path/to/.jar;/path/to/.zip> runnable}
+  -classpath的值可以是folder、.jar、.zip，其中包含的都是.class文件。\\
+  runnable是一个.class文件，扩展名.class不要加上。
+  
+  \subsection[反汇编命令：javap]{反汇编命令：javap}
+  javap是java的反汇编命令，但是很少有人用它来进行反汇编，
+  原因是有很多其他工具反汇编工作做的比javap好的多，但是
+  用javap来输出.class文件的字节码信息，对于学习JVM来说是
+  很有帮助的。
+  \cmd{javap -verbose runnable}
+  注意：runnable为.class文件，后缀.class不要加上。
+  
+  \section[Windows客串：命令行模式启动Emacs]{Windows客串：命令行模式启动Emacs}
+  直接在cmd中使用'emacs'启动时，cmd会一直被占用，使用'\&'也不行，可以使用
+  'runemacs'代替'emacs'，此为Emacs的命令行模式，cmd不会被占用。
 
 
 \end{document}
