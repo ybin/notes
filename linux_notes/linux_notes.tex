@@ -110,6 +110,7 @@
 
 
   \section[grep命令使用举例]{grep命令使用举例}
+  grep: Global search Regular Expression and Print out the line.\\
   grep命令用于从文件中搜索字符串，基本命令格式：
   \cmd{grep [options] <PATTERN> <file-list>}
   其中<PATTERN>为正则表达式，<file-list>可以使用通配符，如"*.c"。
@@ -217,12 +218,12 @@
 
   该算法之所以能减小数据发送量，关键在于checksum映射，将数据chunk
   映射为checksum字符串，从而减小了数据发送量。
-  
-  
+
+
   \section[Linux系统内存布局]{Linux系统内存布局}
   \input{inputdir/linux_memory_layout}
-  
-  
+
+
   \section[Java命令行使用方法]{Java命令行使用方法}
   大家几乎都被IDE绑架了，谁还关注命令行java呢？\par
   注意：java的参数都是使用“-”的，不论长格式还是短格式，这跟GNU格式不符。
@@ -231,12 +232,12 @@
         \hspace*{5em}-sourcepath </path/to/folder;/path/to/.jar;/path/to/.zip>}
   -classpath的值可以是folder、.jar、.zip，其中包含的都是.class文件；\\
   -sourcepath的值可以是folder、.jar、.zip，其中包含的都是.java文件。
-  
+
   \subsection[运行命令：java]{运行命令：java}
   \cmd{javac -classpath </path/to/folder;/path/to/.jar;/path/to/.zip> runnable}
   -classpath的值可以是folder、.jar、.zip，其中包含的都是.class文件。\\
   runnable是一个.class文件，扩展名.class不要加上。
-  
+
   \subsection[反汇编命令：javap]{反汇编命令：javap}
   javap是java的反汇编命令，但是很少有人用它来进行反汇编，
   原因是有很多其他工具反汇编工作做的比javap好的多，但是
@@ -244,10 +245,36 @@
   很有帮助的。
   \cmd{javap -verbose runnable}
   注意：runnable为.class文件，后缀.class不要加上。
-  
+
   \section[Windows客串：命令行模式启动Emacs]{Windows客串：命令行模式启动Emacs}
   直接在cmd中使用'emacs'启动时，cmd会一直被占用，使用'\&'也不行，可以使用
   'runemacs'代替'emacs'，此为Emacs的命令行模式，cmd不会被占用。
 
+  \section[常用压缩/解压缩命令]{常用压缩/解压缩命令}
+  命令行下有很多压缩、解压缩命令，其中tar可以包含很多，另外还有就是zip、rar格式。
+  \subsection[zip文件的压缩和解压缩]{zip文件的压缩和解压缩}
+  压缩：zip filename.zip dirname\\
+  解压：unzip filename.zip
+  \subsection[rar文件的压缩和解压缩]{rar文件的压缩和解压缩}
+  压缩：rar a filename.rar dirname\\
+  解压：rar x filename.rar
+  \subsection[使用tar处理不同的压缩和解压缩文件]{使用tar处理不同的压缩和解压缩文件}
+  tar的基本使用格式如下：
+  压缩：tar <algorithm>cvf filename.tar.<postfix> dirname\\
+  解压：tar <algorithm>xvf filename.tar.<postfix>\\
+  其中，v表示verbose，f表示file，而各种压缩算法及其对应的后缀如下所示：\par
+  \begin{center}
+  \begin{tabular}{ccc}
+    \hline
+    算法 & 字母表示 & 后缀\\ \hline
+    gzip & z & .gz\\
+    bzip & j & .bz\\
+    bzip2 & j & .bz2\\
+    compress & Z & Z\\ \hline
+  \end{tabular}
+  \end{center}
+  如采用gzip算法的压缩和解压：\\
+  压缩：tar zcvf filename.tar.gz dirname\\
+  解压：tar zxvf filename.tar.gz\\
 
 \end{document}

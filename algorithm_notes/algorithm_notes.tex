@@ -28,8 +28,8 @@
     \input{inputdir/full_binary_tree}
     %\caption{buddy system}\label{fig:buddy}
   \end{center}
-  
-  
+
+
   从伙伴算法看满二叉树的一些特性：
   \begin{description}
     \item[total\_leaf\_size] 满二叉树的叶子节点总数
@@ -53,6 +53,34 @@
   \section[字符串匹配的KMP算法]{字符串匹配的KMP算法}
 
   \section[字符串匹配的Boyer-Moore算法]{字符串匹配的Boyer-Moore算法}
+  
+  \section[寻找小于N的所有素数]{寻找小于N的所有素数}
+  Sieve筛选算法用于寻找小于N的所有素数。\par
+  \inputminted[linenos,tabsize=4,bgcolor=srcbg]{cpp}{srcdir/Sieve.c}
+  
+  筛选的方法是：\\
+  首先去掉2的倍数，然后去掉3的倍数，然后去掉4的倍数，然后，...，
+  直到去掉所有sqrt(n)的倍数，如下表：\par
+  \begin{tikzpicture}
+    \matrix [matrix of nodes]
+    {
+      2*\textcolor{red}{2} & 3*\textcolor{red}{2} & 4*\textcolor{red}{2} & 5*\textcolor{red}{2} & $\cdots$ & $\frac{n}{2}$ \\
+      2*\textcolor{red}{3} & 3*\textcolor{red}{3} & 4*\textcolor{red}{3} & 5*\textcolor{red}{3} & $\cdots$ & $\frac{n}{3}$ \\
+      2*\textcolor{red}{4} & 3*\textcolor{red}{4} & 4*\textcolor{red}{4} & 5*\textcolor{red}{4} & $\cdots$ & $\frac{n}{4}$ \\
+      2*\textcolor{red}{5} & 3*\textcolor{red}{5} & 4*\textcolor{red}{5} & 5*\textcolor{red}{5} & $\cdots$ & $\frac{n}{5}$ \\
+    };
+  \end{tikzpicture}
+  
+  一般来说，任意一个小于sqrt(n)的数p，我们要去掉：\\
+  2*p, 3*p, 4*p, 5*p, $\cdots$, p*p, (p+1)*p, (p+2)*p, $\cdots$\\
+  观察一下可以发现，p*p以前的数字，在处理2、3、4、5、$\cdots$、(p-1)*p的倍数时
+  都已经去掉了，所以对于p，我们从p*p开始移除。
+  
+  另外，为何只处理小于等于sqrt(n)的数字呢(上表中一直处理到n)，从上面的说明可以知道，
+  如果$p>sqrt(n)$，$p*p>n$，无需处理，而p*p之前的数字都已经移除了，
+  也无需处理，所以如果$p>sqrt(n)$，则p无需处理。
+  
+  该方法的缺点是占用内存太大！
 
   \part[位操作算法实例]{位操作算法实例}
   aaa
