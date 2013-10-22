@@ -708,7 +708,7 @@
 
 \section[git pull]{git pull}
 \begin{frame}{\ {}}
-\gitcmd{git pull}
+\gitcmd{\small git pull [repo-name] \surrounded{rbranch}:\!\!\!\!\surrounded{lbranch}}
 \begin{center}
   \begin{minipage}{0.7\textwidth}
     \ttfamily
@@ -720,7 +720,7 @@
 
 \section[git push]{git push}
 \begin{frame}{\ {}}
-\gitcmd{git push}
+\gitcmd{\small git push [repo-name] \surrounded{lbranch}:\!\!\!\!\surrounded{rbranch}}
 \centerline{将代码从本地仓库推送到远程仓库，支持默认值设置。}
 \end{frame}
 
@@ -748,7 +748,7 @@
 
 \begin{frame}{delete remote branch}
 \gitcmd{\small
-  git push \surrounded{repo-name}\hspace{2em} :\surrounded{remote-branch}
+  git push \surrounded{repo-name}\hspace{2em} :\!\!\!\!\surrounded{remote-branch}
 }
 \end{frame}
 
