@@ -19,4 +19,5 @@
 release/*
 *.zip
 *.tar.gz
-.projectile 
+*.projectile
+*.stackdump
