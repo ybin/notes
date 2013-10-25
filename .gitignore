@@ -19,3 +19,4 @@
 release/*
 *.zip
 *.tar.gz
+.projectile 
