@@ -275,6 +275,27 @@
   \end{center}
   如采用gzip算法的压缩和解压：\\
   压缩：tar zcvf filename.tar.gz dirname\\
-  解压：tar zxvf filename.tar.gz\\
+  解压：tar zxvf filename.tar.gz
+
+
+  \section[curl命令示例]{curl命令示例}
+  使用curl命令获取外部IP地址：
+  \cmd{curl ifconfig.me}
+  注意：Window版本的curl也可以使用该命令！
+
+
+  \section[树形结构显示文件夹内容]{树形结构显示文件夹内容}
+  Windows版本：
+  \cmd{tree /F}
+
+  Linux版本：待添加。。。
+
+
+  \section[pstree显示进程数结构]{pstree显示进程数结构}
+  命令如下：
+  \cmd{pstree -a -h}
+  -a: 显示命令的启动参数\\
+  -h: 高亮当前进程
+  
 
 \end{document}
