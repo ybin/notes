@@ -1,0 +1,38 @@
+﻿\documentclass[a4paper,11pt]{article}
+
+\input{../styles/article_preamble}
+\input{../styles/tikz_preamble}
+
+\sybtitle{Clojure Notes}
+\sybauthor{孙延宾}
+\sybdate{\today}
+
+\begin{document}
+  \tt % I love Typewriter font.
+%%%%%%%% the title page and toc %%%%%%%%%%
+  \pagestyle{header}
+  \sybmaketitle
+  \tableofcontents
+  \newpage
+
+%%%%%%% the main content %%%%%%%%%
+  \pagestyle{main}
+  \setcounter{page}{1}
+
+  \section[make symbolic list]{make symbolic list}
+  定义一个macro，该macro生成一个symbol列表。listq之于list，
+  恰好是Emacs lisp中的setq之于set。
+
+  \begin{schemecode}
+    (defmacro listq
+      "make a symbol list.
+      
+      listq vs list, just like setq vs set in Emacs lisp."
+      [& args]
+      `'~args)    
+    \end{schemecode}
+
+    注意"`"(syntax-quote)，该语法应用于clojure reader，是在read或者编译时使用的，
+    不是执行期使用的。
+
+\end{document}
