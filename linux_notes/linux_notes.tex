@@ -88,7 +88,8 @@
   \cmd{find -mindepth 3 -maxdepth 5 -name "myfile.c"}
 
   \subsection[在查找到的文件上执行命令]{在查找到的文件上执行命令}
-  可以这样理解："\{\}"代表查找到的文件名，"\{\}"与"\bs;"之间的内容为要执行命令的参数。
+  可以这样理解："\{\}"代表查找到的文件名。“\bs;”是由于“;”是shell中的特殊符号(命令结束)，
+  所以要转义一下，find实际需要的只是“\textvisiblespace ;”而已(空格不能少)，所以Windows下的find就不需要转义。
   \cmd{find -iname "myfile.c" -exec mv \{\} myfile.c.new \bs;}
   充分利用"\{\}"：
   \cmd{find -iname "myfile.c" -exec mv \{\} \{\}.new \bs;}
@@ -296,6 +297,59 @@
   \cmd{pstree -a -h}
   -a: 显示命令的启动参数\\
   -h: 高亮当前进程
+
+
+  \section[login and interactive shell]{login and interactive shell}
+  bash分为两种启动方式：\\
+  Login shell 和 Interactive shell
+
+  Interactive shell(交互式shell)很好理解，就是执行完一条命令就等待用户
+  的下一条命令，以此完成跟用户之间的交互；Non-interactive shell，即
+  非交互式shell，这种shell启动起来是为了执行bash script文件，它直接
+  执行文件，而不跟用户进行交互，执行完脚本文件即退出。
+
+  交互式shell通过"-i"选项启动，启动之后PS1被设置。
+
+  判断shell是否为交互式shell的方法：\\
+  echo \$-\\
+  如果输出中包括''i''表示为交互式的，否则为非交互式的。
+
+  Login shell通过''--login''选项启动，它要求用户输入账号信息进行登录，
+  如纯文本方式登录系统，此时需要用户认证，而通过GUI登录系统之后，再次
+  启动shell时是无需再次认证的(GUI登录时已经认证过了)，此时就可以启动
+  Non-login shell。
+
+  登录式shell与非登录式shell最值得关注的是配置文件的加载，通常情况下加载
+  顺序是这样的：\\
+  Login shell:\\
+  登录时：\\
+  if /etc/profile exists, source it.
   
+  if \~{}/.bash\_profile exists, source it.\\
+  else if \~{}/.bash\_login exists, source it.\\
+  else if \~{}/.profile exists, source it
+
+  退出时：\\
+  if \~{}/.bash\_logout exits, source it.
+
+  一般会在这些配置文件中source其他配置文件，如profile文件中就经常会把
+  .bashrc文件source进来。
+
+  Non-login shell:\\
+  登录时：\\
+  if \~{}/.bashrc exists, source it.
+
+  登录式shell与非登录式shell的退出方式也有些差异：\\
+  exit 既可以退出login shell也可以退出non-login shell\\
+  logout 只能退出login shell，退出non-login shell时会提示并建议用exit退出。
+
+  另外，如果bash是通过sh启动的话，它会尽可能的模拟sh的行为，对于Login shell
+  只会source /etc/profile和\~{}/.profile，其他配置文件将会被忽略。
+
+
+  \section[统计整个目录里的文件行数]{统计整个目录里的文件行数}
+  1. cat `find . -type f -print` | wc -l\\
+  2. find . -type f -print | xargs cat | wc -l\\
+
 
 \end{document}

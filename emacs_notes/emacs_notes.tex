@@ -1,0 +1,242 @@
+﻿\documentclass[a4paper,11pt]{article}
+
+\input{../styles/article_preamble}
+\input{../styles/tikz_preamble}
+
+\sybtitle{Emacs Notes}
+\sybauthor{孙延宾}
+\sybdate{\today}
+
+\begin{document}
+  \tt % I love Typewriter font.
+%%%%%%%% the title page and toc %%%%%%%%%%
+  \pagestyle{header}
+  \sybmaketitle
+  \tableofcontents
+  \newpage
+
+%%%%%%% the main content %%%%%%%%%
+  \pagestyle{main}
+  \setcounter{page}{1}
+  
+  \part[Emacs函数列表]{Emacs函数列表}
+  \section[eval-after-load]{eval-after-load}
+  eval-after-load函数只
+
+  \section[shortcuts list]{shortcuts list}
+  prefix command + C-h : 列出所有隶属于该prefix的快捷键，
+  如C-x C-h将会列出所有C-x开头的快捷键
+
+  mode, mode-map, mode-hook
+  The bindings between key sequences and command functions are recorded in data structures called keymaps.
+  Each major or minor mode can have ites own keymap which overrides the global definitions of some keys.
+
+  Textinfo shortcuts:\\
+  Gnu Info分dir mode和manual mode，顶部的(dir)和(manual name)可以标识。
+  space: 向下滚屏，达到末尾时自动进入下一个文档节点\\
+  backspace: 与space相反
+  l(L): 回溯浏览历史
+  n: 进入下一个同级别的节点
+  p: 与n相反
+  t: 进入顶级节点(manual的顶部)
+  d: top dir, dir mode的顶部(注意跟t区分)
+  u: 进入上一级节点
+  b: 移动到本节点的顶端
+  m: 列出下一级节点的菜单(menu)，如mEmacs可以进入Emacs manual, mInfo进入Info manual
+  f: 进入交叉链接（l可以返回原节点）
+  i: 列出文档所有索引标题
+  s: 搜索文档
+
+  setq-default always set variables global value instead of local value.
+  default-value get default value, e.g. global value.
+
+  Emacs内部有自己的编码方案，该方案是Unicode的超集，它可以编码几乎所有
+  语言。在读取、写入文件时可以实现编码方式的自动转换。
+
+  C-h h会打开一个hello文件，记录了所有语种的''hello''翻译。
+
+  C-q -> quote-insert
+
+  C-x = -> what-cursor-position，显示当前光标处字符的信息，对于多字节字符，
+  Emacs在charactor code的最后显示为'file...'
+  更详细的信息可以通过''C-u C-x =''来显示。
+
+  不要单独设置一个''语言''，而是设置一种''语言环境''，一个语言环境设置了很多
+  默认参数。Choose a language environment instead of language.
+  语言环境用于读取文件内容时对文件的编码方案进行识别。
+  
+  变量current-language-environment用来标识当前的语言环境(识别当前语言环境时使用该变量)；
+  函数set-language-environment用来设置语言环境(修改语言环境时应该使用该函数)
+
+  language-info-alist变量保当前所有的语言环境信息，每一种语言环境都包含多个变量，
+  如coding system, input method等，可以定义自己的语言环境，然后添加到该alist中即可。
+  
+  describe-language-environment函数用于显示某种语言环境的信息，默认参数使用
+  current choice，即当前正在使用的语言环境。
+  注意：语言环境的信息在mode line的第一部分显示，如：
+  "U"表示UTF-8，''c''表示chinese-GBK等。
+  顺便说一下，mode line第一部分的组成(鼠标放上去之后会有提示)：\\
+  <coding system>(end-of-line style)<is writable><is modified><file path>\\
+  <file path>一般用''-''代替。
+
+  定制语言环境：\\
+  set-language-environment切换语言环境时会调用两个hook里面的函数：\\
+  exit-language-environment-hook\\
+  set-language-environment\\
+  他们按照顺序执行，所以定制某一种语言环境时可以在set hook中设置，
+  在exit hook中还原，另外使用current-language-environment变量
+  识别当前所在的语言环境。
+
+  Emacs原来自带拼音输入法啊！ C-\ -> toggle-input-method
+
+  修改input method：\\
+  set-input-method修改输入法；list-input-methods列出所有可用输入法。
+  
+  输入法的原因是某些字符键盘上是没有的(中文字符一个都没有)，需要通过某种方法
+  进行转换，转换方法一般有三种：\\
+  简单转换：将可见ascii字符映射为其他字符，一一映射。该方法适用于映射的目标集合小于等于
+  ascii可见字符集合的情况。\\
+  组合转换：多个ascii可见字符组合起来代表一个特殊字符，如法语，''o\^{}''表示$\hat{o}$
+  简单+组合：将两种方法结合起来，如中文拼音。
+
+  通过Unicode吗直接输入字符：\\
+  C-x 8 <RET> -> insert-char，然后输入十六进制的Unicode码即可，
+  如5BBE将会输入''宾''字符。
+
+  \section[Emacs Coding System]{Emacs Coding System}
+  Emacs编码系统的常用命令：\\
+  list-coding-systems: 列出当前列表编码系统列表
+  describe-coding-system: 打印当前编码系统的详细信息
+
+  Possible completions are:
+  describe-bindings 	describe-buffer-case-table
+  describe-categories 	describe-char
+  describe-char-after 	describe-character-set
+  describe-class 	describe-coding-system
+  describe-copying 	describe-current-coding-system
+  describe-current-coding-system-briefly 	describe-current-display-table
+  describe-distribution 	describe-face
+  describe-font 	describe-fontset
+  describe-function 	describe-generic
+  describe-gnu-project 	describe-input-method
+  describe-key 	describe-key-briefly
+  describe-language-environment 	describe-minor-mode
+  describe-minor-mode-from-indicator 	describe-minor-mode-from-symbol
+  describe-mode 	describe-no-warranty
+  describe-package 	describe-prefix-bindings
+  describe-project 	describe-specified-language-support
+  describe-syntax 	describe-text-category
+  describe-text-properties 	describe-theme
+  describe-variable
+
+  每一种编码方案都有三个变种(variat)：--dos, --unix, --mac
+
+  在读取文件时，Emacs按照一个编码方案列表逐个测试，可以使用 prefer-coding-system 函数
+  将某个编码方案放置到列表的前头，从而使得该编码方案被优先使用(如果不匹配，Emacs仍然会
+  继续测试剩余的编码方案，而不会一定就是用该preferred编码方案)
+
+  file-coding-system-alist变量保存了文件与编码方案的关联，可以单独设置编码、解码方案，也可
+  编解码使用同一个方案，函数 modify-coding-system-alist可以修改该变量。
+
+  使用 revert-buffer-with-coding-system函数可以使用指定的编码方案重新渲染(revisit)当前buffer
+
+  一旦Emacs识别出文件的编码方案之后，就将该编码方案名称保变量 buffer-file-coding-system 中。
+
+  设置buffer的编码方案： set-buffer-file-coding-system函数。
+
+  universal-coding-system-argument函数 用指定的参数来影响“紧接下来的”命令，如C-x i(insert-file)，
+  时使用该函数并指定编码方案作为参数，可以以指定的编码方案编码insert进来的文件内容。
+
+  当Emacs创建新文件时，会使用 buffer-file-coding-system 变量指定的编码方案处理新文件，注意，
+  这个变量是buffer-local的，所以要使用 setq-default 修改全局变量才会生效，也正因为它是buffer-local的，
+  所以这样修改并不影响打开其他编码方案的文件，这样的文件的buffer-local buffer-file-coding-system值
+  依然正确。
+
+
+  \section[查找替换]{查找替换}
+  一次性替换所有匹配： replace-string 函数。
+
+  查找替换： query-replace, M-%，进入查找替换模式之后，使用下列命令进行操作：\\
+  y: 替换当前并前进到下一个匹配处\\
+  n: 忽略当前并前进到下一个匹配处\\
+  !: 替换所有匹配\\
+  \^{}: 回到前一个匹配\\
+  q: 退出\\
+  e: 修改新字符串\\
+  ?: 显示帮助信息\\
+  任意其他键退出查找替换模式。
+
+  C-x ESC ESC 重新执行之前的命令。
+
+  \section[自定义当前行高亮模式]{自定义当前行高亮模式}
+  自定义方式：\\
+  M-x customize-face RET hightlight RET
+
+  能否定义当前行透明呢，这样就可以保持代码高亮的颜色了。
+
+
+  \section[buffer相关的函数]{buffer相关的函数}
+  buffer-name: 返回buffer的name，默认返回当前buffer的name；\\
+  buffer-file-name: 返回buffer关联的file name，默认为当前buffer；\\
+  current-buffer: 返回当前buffer对象；\\
+  other-buffer: 返回其他buffer对象，默认为最近离开的buffer；\\
+  switch-to-buffer: 切换到其他buffer，参数为buffer对象；\\
+  buffer-size: buffer的size；\\
+  point: 当前光标在buffer中的位置；\\
+  point-min: 光标在buffer中可以到达的最小位置；\\
+  point-max: 光标在buffer中可以到达的最大位置；\\
+  
+
+  \section[define interactive function]{define interactive function}
+  interactive function指的是可以通过M-x或者绑定快捷键调用的函数，定义该类函数
+  只需在普通函数的函数体开始处调用interactive函数即可。
+
+  interactive函数的原型是这样的：\\
+  (interactive \&optional ARGS)\\
+  ARGS一般为一个字符串，该字符串由code letter(一些表示特殊含义的字母)和
+  提示字符串组成，如"sPlease input a string: "，每个code letter可以跟
+  一个提示字符串，多组code letter(一个code letter和其提示字符串算作一组)
+  之间用换行符'\bs n'隔开。例如：\\
+  "nPlease input a number: \bs nsPlease input a string: "\\
+  函数的完整定义如下：\\
+  \begin{schemecode}
+(defun interactive-demo (number string)
+  "Receive a number and a string, then show them."
+  (interactive "nPlease input a number: \bs nsPlease input a string: ")
+  (message "You have input a number '%d' and a string '%s'" number string))
+  \end{schemecode}
+
+  \section[special forms]{special forms}
+  defun
+
+  let
+
+  if
+
+  save-excursion
+
+  \section[C-x C-x]{C-x C-x}
+  切换point与mark，同时选中期间的区域。
+
+  选中期间的区域很关键，如M-<先在当前设置mark然后移动point到buffer的开始处，
+  此时C-x C-x就会选中光标直到文件开头的区域。
+
+  \section[paredit mode key binding]{paredit mode key binding}
+  paredit对于lisper们来说真是太重要了，它操纵圆括号出神入化。
+  \subsection[输入篇]{输入篇}
+  1. 输入“(”，自动补全“)”，注释及字符串中除外
+  2. 输入“)”，自动跳转到下一个“）”之后(跳出括号)，注释及字符串中除外
+  3. “M-)”，自动跳转到下一个“)”之后并换行、缩进，注释及字符串中除外
+  
+
+  \subsection[删除篇]{删除篇}
+
+  \subsection[移动篇]{移动篇}
+
+  \subsection[深度篇]{深度篇}
+
+  \subsection[barfage \& slurpage]{barfage \& slurpage}
+  
+  \subsection[其他]{其他}
+  
+\end{document}
