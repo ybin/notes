@@ -962,6 +962,16 @@
 \end{center}
 \end{frame}
 
+\section[git add -p]{git add -p}
+\begin{frame}{git add -p}
+\gitcmd{\normalsize
+  git add -p
+}
+有时一个文件中的修改涉及到多个功能，需要多次提交，这就要将这些修改分开来add，
+-p选项就是用来解决这个问题的，每一处diff它都会询问用户如何操作，提示很完善，
+不必多说。
+\end{frame}
+
 \section[commit template]{commit template}
 \begin{frame}{make commit template}
 \gitcmd{\normalsize
