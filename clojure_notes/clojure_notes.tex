@@ -25,14 +25,83 @@
 
   \begin{schemecode}
     (defmacro listq
-      "make a symbol list.
+    "make a symbol list.
+    
+    listq vs list, just like setq vs set in Emacs lisp."
+    [& args]
+    `'~args)    
+  \end{schemecode}
+
+  注意"`"(syntax-quote)，该语法应用于clojure reader，是在read或者编译时使用的，
+  不是执行期使用的。
+
+  \section[高阶函数举例]{高阶函数举例}
+  常用高阶函数：
+
+  \subsection[function map]{function map}
+  语法：\par
+  (map fn c1 \& coll)
+
+  map函数接收一个函数以及任意多个collection作为参数，返回一个列表，要求函数fn的
+  参数个数与collections个数相等，map依次从各个colls中取出一个元素，
+  然后把这些元素作为参数传递给fn，返回值最为最终结果(一个列表)的元素，
+  如果colls长度不一致，map按照最短的coll计算。
+
+  例如，向量加法(向量相加还是向量)：\par
+  (map + [1 2 3 4] [2 3 4 1] [3 4 1 2] [4 3 2 1])\par
+  四个向量相加。
+
+  \subsection[function apply]{function apply}
+  语法：\par
+  (apply fn coll)
+
+  将coll的所有元素”一次性“传递给fn，然后返回fn的结果。
+
+  例如，将一个coll中的所有元素相加：\par
+  (apply + [1 2 3 4])
+  
+  \subsection[function reduce]{function reduce}
+  语法：\par
+  (reduce fn coll)\\
+  (reduce fn seed coll)
+
+  函数fn必须可以接收两个参数，如果seed没有提供，就取coll的前两个元素作为
+  fn的参数，返回值和第三个参数再次传入fn，依次类推，直到遍历coll。如果提供seed，
+  就取seed作为第一个参数，coll的第一个元素作为第二个参数传入fn，返回值和第二个元素
+  再次传入fn，依次类推直到遍历coll。
+
+  例如，求向量的模($\sqrt{x_1^2+x_2^2+x_3^3+\cdots+x_n^2}$)：\par
+  (reduce \#(+ \%1 (* \%2 \%2)) 0 [1 2 3 4])
+  
+  \subsection[function filter]{function filter}
+  语法：\par
+  (filter predicate-fn coll)
+
+  filter函数依次取coll的元素，传递给predicate-fn，如果该函数返回true
+  就留下这个元素，否则就丢掉，结果是一个所有元素都满足predicate-fn的列表。
+
+  例如，取出所有的偶数：\par
+  (filter enven? [1 2 3 4 5 6])
+
+  \section[使用自定义的java库和clojure库]{使用自定义的java库和clojure库}
+  clojure可以轻松使用自定义的Java库和自定义的Clojure库。
+  \subsection[自定义Java库]{自定义Java库}
+  一般java库都是以.jar文件的形式发布，从clojure调用自定义java库只需：
+
+  将.jar文件放到classpath路径下，如启动repl时使用参数-cp加载，标准的java方式均可，
+  然后从clojure代码直接调用即可，如：\\
+  (. org.ybin.Util greetFromJava)\\
+  调用org.ybin这个java package里的Util这个类的名为greetFromJava的静态方法。
+
+  \subsection[自定义clojure库]{自定义clojure库}
+  自定义clojure库同样很简单，只需：
+
+  1. 将clj文件，如core.clj，放到classpath下的目录中\\
+  2. 设置正确的路径，如：我把sybUtil/这个目录加到classpath中，
+  然后在sybUtil/org/ybin/目录下放置core.clj文件，该文件中定义
+  namespace为(ns org.ybin.core)，一个文件即为一个namespace，
+  使用时先require：(require 'org.ybin.core)，然后调用：(org.ybin.core/greet-from-clj)，调用该
+  namespace中的greet-from-clj函数。
+
       
-      listq vs list, just like setq vs set in Emacs lisp."
-      [& args]
-      `'~args)    
-    \end{schemecode}
-
-    注意"`"(syntax-quote)，该语法应用于clojure reader，是在read或者编译时使用的，
-    不是执行期使用的。
-
 \end{document}

@@ -351,5 +351,48 @@
   1. cat `find . -type f -print` | wc -l\\
   2. find . -type f -print | xargs cat | wc -l\\
 
+  \section[Windows客串：explorer.exe和cmd.exe的用法]{windows客串：explorer.exe和cmd.exe的用法}
+  打开目录并打开资源管理器侧边栏：\\
+  explorer.exe /e, [dir-path]
+
+  打开文件所在的目录并选中该文件：\\
+  explorer.exe /select, [file-path]
+
+  打开新的cmd并进入到指定目录：\\
+  cmd.exe /c start /d [dir-path]
+
+  使用系统默认程序打开文件：\\
+  cmd.exe /c [file-path]
+
+  \section[Windows客串：批处理-截取字符串]{windows客串：批处理-截取字符串}
+  批处理中截取字符串的统一格式为：
+  
+  \begin{bashcode}
+    set str=123456789
+    %str:~n,k%
+  \end{bashcode}
+
+  str为字符串的原始数据\\
+  ":\~{}"和","是必须的，表示进入字符串截取扩展模式\\
+  n表示substring的开始位置（0-based，且不能省略）\\
+  k表示substring的长度，默认值为开始位置直到字符串结束，如果超出字符串结尾，就一直取到结尾，如果k省略，逗号也要省略\\
+  n,k为负数时，表示从字符串结尾开始算。
+  
+
+  示例：\par
+  \begin{bashcode}
+    @echo off
+    set str=0123456789
+    echo 原始字符串：%str%
+    echo 开始位置为0，取一个字符，即取第一个字符：%str:~0,1%
+    echo 开始位置为0，一直取到倒数第二个，即去掉最后一个字符：%str:~0,-1%
+    echo 开始位置为3，取一个字符，即取第四个字符：%str:~3,1%
+    echo 开始位置为-1，省略子串长度，即取最后一个字符：%str:~-1%
+    echo 开始位置为-1，取一个字符，即取最后一个字符：%str:~-1,1%
+    echo 开始位置为-1，取2个字符，即取最后一个字符：%str:~-1,1%
+    (取一个字符即达到字符串结尾，所以只能去除一个字符)
+    echo 开始位置为-4，取一个字符，即取倒数第四个字符：%str:~-4,1%
+  \end{bashcode}
+
 
 \end{document}
