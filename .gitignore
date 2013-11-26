@@ -21,3 +21,5 @@ release/*
 *.tar.gz
 *.projectile
 *.stackdump
+
+\#*\#
