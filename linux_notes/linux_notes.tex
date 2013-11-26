@@ -349,7 +349,7 @@
 
   \section[统计整个目录里的文件行数]{统计整个目录里的文件行数}
   1. cat `find . -type f -print` | wc -l\\
-  2. find . -type f -print | xargs cat | wc -l\\
+  2. find . -type f -print | xargs cat | wc -l
 
   \section[Windows客串：explorer.exe和cmd.exe的用法]{windows客串：explorer.exe和cmd.exe的用法}
   打开目录并打开资源管理器侧边栏：\\
@@ -364,7 +364,7 @@
   使用系统默认程序打开文件：\\
   cmd.exe /c [file-path]
 
-  \section[Windows客串：批处理-截取字符串]{windows客串：批处理-截取字符串}
+  \section[Windows客串：批处理-字符串操作]{windows客串：批处理-字符串操作}
   批处理中截取字符串的统一格式为：
   
   \begin{bashcode}
@@ -392,6 +392,20 @@
     echo 开始位置为-1，取2个字符，即取最后一个字符：%str:~-1,1%
     (取一个字符即达到字符串结尾，所以只能去除一个字符)
     echo 开始位置为-4，取一个字符，即取倒数第四个字符：%str:~-4,1%
+  \end{bashcode}
+
+
+  字符串替换的格式如下：
+
+  \begin{bashcode}
+    %str:str1=str2%
+  \end{bashcode}
+
+  示例：
+  \begin{bashcode}
+    set str=sun ybin
+    echo 名字：%str%
+    echo "ybin"=>"yanbin": %str:ybin=yan bin%
   \end{bashcode}
 
 
