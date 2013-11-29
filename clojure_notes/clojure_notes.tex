@@ -103,5 +103,49 @@
   使用时先require：(require 'org.ybin.core)，然后调用：(org.ybin.core/greet-from-clj)，调用该
   namespace中的greet-from-clj函数。
 
-      
+  \section[clojure访问java enum元素]{clojure访问java enum元素}
+  java enum定义：\par
+  \begin{javacode}
+public class JCLASS {
+  static MyEnum {
+    FIRST,
+    SECOND,
+    THIRD
+  }
+}
+  \end{javacode}
+
+  clojure访问java enum：\par
+  \begin{schemecode}
+(println JCLASS$MyEnum/FIRST)
+\end{schemecode}
+
+
+  \section[clojure.java.io]{clojure.java.io}
+  clojure中如何处理java io。
+  \subsection[reader]{reader}
+  reader默认返回一个java.io.BufferedReader。
+  它可以读取Reader, BufferedReader, InputStream, File,
+  URI, URL, Socket, byte arrays, character arrays以及String.
+
+  如果参数为一个字符串，reader首先尝试按照URI解析，再尝试按照
+  local file name解析。
+
+  reader应该在with-open中使用，以确保其被正确关闭。
+
+  示例：\\
+  \begin{schemecode}
+    (with-open [rdr (clojure.java.io/reader "http://www.baidu.com")]
+      (println (clojure.string/join "\n" (line-seq rdr))))
+  \end{schemecode}
+
+  另一个函数clojure.core/slurp跟reader接受同样的参数，但是它不会缓开的内容，
+  而是一次性把所有内容读入内存，然后返回一个字符串(注意编码方式)，所以当内容不被考虑的情况下，
+  可以使用slurp。
+  
+  \begin{schemecode}
+    (println (str (slurp "http://www.baidu.com" :encoding "UTF-8")))
+  \end{schemecode}
+
+  
 \end{document}
