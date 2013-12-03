@@ -122,7 +122,9 @@ public class JCLASS {
 
 
   \section[clojure.java.io]{clojure.java.io}
-  clojure中如何处理java io。
+  clojure中如何处理java io。java中reader, writer与input stream, output stream的
+  区别主要是encode与decode，前者面向“字符流”后者面向“字节流”，后者不进行codec。
+  
   \subsection[reader]{reader}
   reader默认返回一个java.io.BufferedReader。
   它可以读取Reader, BufferedReader, InputStream, File,
@@ -140,12 +142,41 @@ public class JCLASS {
   \end{schemecode}
 
   另一个函数clojure.core/slurp跟reader接受同样的参数，但是它不会缓开的内容，
-  而是一次性把所有内容读入内存，然后返回一个字符串(注意编码方式)，所以当内容不被考虑的情况下，
-  可以使用slurp。
+  而是一次性把所有内容读入内存，然后返回一个字符串(注意编码方式)，之后关闭文件
+  所以当内容不被考虑的情况下，可以使用slurp。
   
   \begin{schemecode}
     (println (str (slurp "http://www.baidu.com" :encoding "UTF-8")))
   \end{schemecode}
+
+  于此对应的是clojure.core/spit，它与slurp正好相反，它使用writer将内容写入文件，
+  然后关闭文件。
+
+  \begin{schemecode}
+    (spit "c:/log.txt" "this is log content.")
+  \end{schemecode}
+
+  spit接收optional参数，比如:append等，所有writer接收的参数均可。
+
+  名词翻译：slurp - 出声的吃、喝； spit - 吐，吐出。
+
+
+  \subsection[writer]{writer}
+
+  \subsection[input-stream]{input-stream}
+
+  \subsection[output-stream]{output-stream}
+
+  \subsection[file]{file}
+
+  \subsection[delete-file]{delete-file}
+
+  \subsection[make-parents]{make-parents}
+
+
+  \section[clojure source code]{clojure source code}
+  clojure源码中的Axxx文件中的A表示Abstract，用于表示抽象类；
+  Ixxx文件中的I表示Interface，用于表示接口类。
 
   
 \end{document}
