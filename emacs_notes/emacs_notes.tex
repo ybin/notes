@@ -221,22 +221,79 @@
   选中期间的区域很关键，如M-<先在当前设置mark然后移动point到buffer的开始处，
   此时C-x C-x就会选中光标直到文件开头的区域。
 
+
+  \part[Emacs Mode]{Emacs Mode}
+
   \section[paredit mode key binding]{paredit mode key binding}
   paredit对于lisper们来说真是太重要了，它操纵圆括号出神入化。
-  \subsection[输入篇]{输入篇}
-  1. 输入“(”，自动补全“)”，注释及字符串中除外
-  2. 输入“)”，自动跳转到下一个“）”之后(跳出括号)，注释及字符串中除外
-  3. “M-)”，自动跳转到下一个“)”之后并换行、缩进，注释及字符串中除外
+
+  单词解释：\par
+  slurp: 吞（非常夸张的狂吃的那种）\\
+  barf : 吐（疯狂呕吐的那种）\\[10pt]
+  split: 分割、分裂\\
+  splice: 拼接，合并
   
+  \subsection[输入篇]{输入篇}
+  \subsubsection[输入"("]{输入"("}
+  输入“(”，自动补全“)”，注释及字符串中除外
+  \subsubsection[输入")"]{输入")"}
+  输入“)”，自动跳转到下一个“）”之后(跳出括号)，注释及字符串中除外
+  \subsubsection[输入"M-("]{输入"M-("}
+  “M-)”，自动跳转到下一个“)”之后并换行、缩进，注释及字符串中除外
 
   \subsection[删除篇]{删除篇}
+  \subsubsection[删除两个词之间的空格]{删除两个词之间的空格}
+  删除两个word之间的空格(emacs, not paredit)，即拼接两个word: M-\bs \\
+  例如：aaa  |   bbb => aaabbb
+  \subsubsection[删除整个list]{删除整个list}
+  没有快捷键可以直接删除整个list，但是可以通过两个组合键完成：\\
+  C-k -> C-d\\
+  这要求光标处于list的第一个元素上。
 
   \subsection[移动篇]{移动篇}
-
+  将list作为一个word进行移动，直接跨过真个list，如果没有list则依次移动一个word。
+  C-M-f, C-M-b\\
+  forward-sexp, backward-sexp\\
+  
   \subsection[深度篇]{深度篇}
+  \subsubsection[按照深度拼接列表]{按照深度拼接列表}
+  将子列表的内容拼接到上级列表中：M-s\\
+  例如：(foo bar (baz |baby) chop bee) => (foo bar baz baby chop bee)
+
+  \subsubsection[提升子列表]{提升子列表}
+  提升子列表，同时将上级列表的其他内容删除：M-r(raise)\\
+  例如：(foo (bar |baz) bee) => (bar baz)
+
+  \subsubsection[插入子列表]{插入子列表}
+  插入子列表，并将光标后的word/list作为其内容：M-(\\
+  例如：(foo bar |baz) => (foo bar (baz))
 
   \subsection[barfage \& slurpage]{barfage \& slurpage}
+  列表吞吐分为两类：向前吞吐(操作"(")、向后吞吐(操作")")\\
+  \subsubsection[向前吞吐]{向前吞吐}
+  向前吞：C-M-<left>\\
+  例如：(foo bar (baz |bee)) => (foo (bar baz |bee))
+  
+  向前吐：C-M-<right>\\
+  例如：(foo bar (baz |bee)) => (foo bar baz (|bee))
+  \subsubsection[向后吞吐]{向后吞吐}
+  向后吞：C-<right>\\
+  例如：(foo (bar |baz) bee) => (foo (bar |baz bee))
+
+  向后吐：C-<left>\\
+  例如：(foo (bar |baz) bee) => (foo (bar|) baz bee)
   
   \subsection[其他]{其他}
+
+
+  \section[按照某个字符对齐]{按照某个字符对齐}
+  如果要按照某个字符进行对齐，如等号，可这样操作：
+
+  1. 选中需要对齐的文本
+
+  2. M-x align-regexp RET <your sign> RET
+
+
+  
   
 \end{document}

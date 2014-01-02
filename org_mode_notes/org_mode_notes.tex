@@ -1,0 +1,41 @@
+﻿\documentclass[a4paper,11pt]{article}
+
+\input{../styles/article_preamble}
+\input{../styles/tikz_preamble}
+
+\sybtitle{Emacs Org-mode Notes}
+\sybauthor{孙延宾}
+\sybdate{\today}
+
+\begin{document}
+  \tt % I love Typewriter font.
+%%%%%%%% the title page and toc %%%%%%%%%%
+  \pagestyle{header}
+  \sybmaketitle
+  \tableofcontents
+  \newpage
+
+%%%%%%% the main content %%%%%%%%%
+  \pagestyle{main}
+  \setcounter{page}{1}
+
+  \part[基本使用方法]{基本使用方法}
+
+  \section[HTML preamble and postamble]{HTML preamble and postamble}
+  Org生成HTML时会在生成之前和之后分别插入preamble和postamble。
+
+  \subsection[preamble]{preamble}
+  是否插入preamble由变量org-html-preamble控制，默认为t，即插入
+  org-html-preamble-formt代表的内容，nil将会移除preamble。
+
+  \subsection[postamble]{postamble}
+  是否插入postamble由变量ort-html-postamble控制，默认为auto，
+  即插入作者、电子邮件、创建器、日期等，设置该变量为t将会插入
+  org-html-postamble-format代表的内容，nil将会移除postamble。
+
+
+  \section[Easy Templates]{Easy Templates}
+  org-structure-template-alist
+
+  
+\end{document}

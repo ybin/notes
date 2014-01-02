@@ -116,9 +116,7 @@ public class JCLASS {
   \end{javacode}
 
   clojure访问java enum：\par
-  \begin{schemecode}
-(println JCLASS$MyEnum/FIRST)
-\end{schemecode}
+(println JCLASS\$MyEnum/FIRST)
 
 
   \section[clojure.java.io]{clojure.java.io}
@@ -178,5 +176,665 @@ public class JCLASS {
   clojure源码中的Axxx文件中的A表示Abstract，用于表示抽象类；
   Ixxx文件中的I表示Interface，用于表示接口类。
 
+
+  \section[function into]{function into}
+  函数into的语法：\par
+  \begin{schemecode}
+    (into to-coll from-coll)
+  \end{schemecode}
+
+  使用into可以在coll之间进行类型转换，比如将list转为vector：\par
+  \begin{schemecode}
+    (into [] '(1 2 3 4))
+  \end{schemecode}
+
+  但是，需要注意的是hash-map，into处理的是sequence，而hash-map是key-value pair组成的
+  sequence，而这个key-value pair本质上是vector，所以不能直接将list或者vector into
+  到hash-map，而要将key-value pair组成的vector或者list转换为hash-map，如：\par
+  \begin{schemecode}
+    ; convert hash-map to vector
+    (into [] {:a 1 :b 2})
+    
+    ; convert vector to hash-map, ***WRONG***
+    (into {} [:a 1 :b 2])
+
+    ; convert vector to hash-map, ***RIGHT***
+    (into {} [[:a 1] [:b 2]]
+  \end{schemecode}
+
+  \section[使用for遍历固定深度的tree]{使用for遍历固定深度的tree}
+  假设树的深度为3，树用hash-map来表示：\par
+  \begin{schemecode}
+    (def tree
+      {:root
+        {:a
+          {:A 1, :B 2, :C 3}
+         :b
+          {:D 4, :E 5, :F 6}
+         :c
+          {:G 7, :H 8, :I 9}}})
+  \end{schemecode}
+
+  然后遍历输出所有叶子节点的值：\par
+  \begin{schemecode}
+    (for [[k v] tree
+          [k2 v2] v
+          [k3 v3] v2]
+      v3)    
+  \end{schemecode}
+
+  \section[任意精度数字运算]{任意精度数字运算}
+  clojure的四则运算中，如果参数有至少一个超过java.lang.Integer的范围，则四则运算
+  自动提升到BigInt进行运算；如果没有参数超过java.lang.Integer，但是运算结果却
+  超出了Integer的范围，则抛出IntOverflow异常，四则运算不会自动进行类型提升，而相应的
+  "+', -', *'"(除法没有该版本)则强制进行类型提升。
+
+  所以，像quot, rem等运算是不用担心IntOverflow的，因为他们的运算结果只会比参数更小，
+  不会存在结果比参数还要大的情况。
+
+  clojure支持任意精度数字运算，即BitInt，其四则运算为：\par
+  \begin{schemecode}
+    +', -', *'
+  \end{schemecode}
+
+  例如：\par
+  \begin{schemecode}
+    (apply *' (range 1 101))
+  \end{schemecode}
+
+  \section[lazy sequence]{lazy sequence}
+  如何使用lazy-seq函数创建lazy sequence，一般的用法如下：\par
+  \begin{schemecode}
+    (defn fib
+      [a b]
+      (cons a (lazy-seq (fib b (+ b a))))
+  \end{schemecode}
+
+  如上定义了一个斐波那契数列。
+
+  可见，lazy-seq一般配合"递归"来定义lazy sequence。
+  下面使用lazy-seq定义杨辉三角(Pascal's Triangle)。
+
+  \begin{schemecode}
+(fn pascal-triangle
+  [coll]
+  (cons coll (lazy-seq (pascal-triangle ((fn [c]
+        (conj (into [(first c)]
+          (map #(apply +' %) (partition 2 1 c))) (last c))) coll)))))
+  \end{schemecode}
+
+  一个更加简洁的实现方式：\par
+  \begin{schemecode}
+(defn yanghui-triangle
+  [coll]
+  (iterate
+   (fn [[x & xs :as all]]
+     (flatten
+      [x (map (partial apply +)
+              (partition 2 1 all)) (last all)]))
+   coll))
+
+(take 10 (yanghui-triangle [1]))
+  \end{schemecode}
+
+  结果：\par
+  \begin{schemecode}
+([1]
+ (1 1)
+ (1 2 1)
+ (1 3 3 1)
+ (1 4 6 4 1)
+ (1 5 10 10 5 1)
+ (1 6 15 20 15 6 1)
+ (1 7 21 35 35 21 7 1)
+ (1 8 28 56 70 56 28 8 1)
+ (1 9 36 84 126 126 84 36 9 1))
+  \end{schemecode}
+
+  注意iterate和partial的用法。
+
+
+  \section[从一个题目中体会算法]{从一个题目中体会算法}
+  题目：\par
+  写一个函数：f(N, p, q)，求所有小于N，并能被p或者q整除的数之和，其中p、q互素。
+
+  方案一：遍历、判断、求和。\par
+  但是当N很大时，这是不可行的。
+
+  方案二：利用等差数列已经互素的性质。\par
+  “所有p的小于N的倍数之和”+“所有q的小于N的倍数之和”-“所有p*q的小于N的倍数之和”。
+
+  三部分均为等差数列，所以可以利用等差数列公式，常数时间、常数空间内即可完成计算。
+
+
+  \section[关于Macro]{关于Macro}
+  defmacro的body部分展开解释。
   
+  \begin{schemecode}
+    (defmacro my-defn
+      [name & body]
+      `(defn ~name [] ~@body))
+  \end{schemecode}
+
+  然后开始使用该宏来定义函数：
+
+  \begin{schemecode}
+    (my-defn foo (println "hello"))
+    ; 展开
+    ; (def foo (clojure.core/fn ([] (println "hello"))))
+  \end{schemecode}
+
+  很好，一切正常！继续：
+
+  \begin{schemecode}
+    (def fbody '(println "hello"))
+    (my-defn bar fbody)
+    ; 展开
+    ; (def foo (clojure.core/fn ([] fbody)))
+  \end{schemecode}
+
+  看到比较结果了吗？可能跟想要的结果不一样，但是想想defn的定义，符合逻辑，
+  函数体就是fbody而不是(println "hello")，不是吗？！
+
+
+  \section[体会递归、面向数据]{体会递归、面向数据}
+  写一个简单的计算器，根据给定的变量表计算表达式的值。
+  该计算器必须通过下列测试：\par
+  \begin{schemecode}
+;;; test
+(= 2 ((__ '(/ a b))
+      '{b 8 a 16}))
+(= [6 0 -4]
+     (map (__ '(* (+ 2 a)
+                     (- 10 b)))
+          '[{a 1 b 8}
+            {b 5 a -2}
+            {a 2 b 11}]))
+  \end{schemecode}
+  
+  计算器实现如下：\par
+  \begin{schemecode}
+(defn parse
+  [expr]
+  (fn evaluate
+    [vars]
+    (cond
+     (list? expr) (apply ({'+ +, '- -, '* *, '/ /} (first expr))
+                         (map #((parse %) vars) (rest expr)))
+     (vars expr) (vars expr)
+     :else expr)))
+  \end{schemecode}
+
+  注意：如何不使用eval函数运行list变量，lisp对list的处理只会发生在“字面量”上，
+  即解析代码的时候，如果一个list变量里面装的是“代码”，即数据即代码，你明知这个
+  list可以被解析执行，但是lisp不会解析它，lisp只会将其视为普通的list变量，事实上，
+  它就是一个list变量而已。如果要解析执行list，唯一的方式是使用eval函数，但是
+  eval is bad! 那只好手动解析每个函数，不过好在lisp的函数调用规则及其简单：
+  第一个是函数，剩下的都是参数。
+  
+  还有一种通过eval函数实现的方式，这种方式可能会让结构更加明了：
+
+  \begin{schemecode}
+(defn computer
+  [expr]
+  (let [parser (fn [v]
+                 (map (fn mapper [form]
+                        (cond
+                         (list? form) (map mapper form)
+                         (v form) (v form)
+                         :else form))
+                      expr))]
+    (fn interpreter [vars]
+      (eval (parser vars)))))
+  \end{schemecode}
+
+  上面的测试仍然可以通过，而且所有函数直接使用clojure的内置函数库，
+  整个结构也比较清晰：\par
+  给computer传递一个expr，它生成一个interpreter（通过内部的parser生成），
+  然后给interpreter一个变量表，它便给出最终的计算结果，逻辑很清晰。
+  唯一的缺点便是使用了eval函数，而eval is bad!
+
+
+  \section[操作序列的index]{操作序列的index}
+  有时序列的index是重要的，比如将0-1组成的字符串转换为整数，clojure提供了
+  map和keep的indexed版本：map-indexed, keep-indexed\par
+  map-indexed与map类似，区别在于操作函数，map的操作函数接受一个参数，
+  而map-indexed接受两个参数：index, item，如将0-1字符串转换为整数。
+
+  \begin{schemecode}
+;;; map-indexed接受的函数为f(index, item)
+(defn binary-to-int
+  [string]
+  (reduce + 0
+          (map-indexed #(cond
+                         (= %2 \0) 0
+                         :else (int (Math/pow 2 %1)))
+                       (reverse string))))
+  \end{schemecode}
+
+  keep-indexed于此类似，其接受的函数也是：f(index, item)
+
+
+  \section[function apply]{apply函数}
+  apply的语法：
+
+  \begin{schemecode}
+    (apply x y z arg-list)
+  \end{schemecode}
+
+  其中arg-list为collection/seq。
+
+  apply的应用场景：
+
+  当我们的函数需要多个参数，但是这些参数是通过一个collection/seq
+  的形式给出的，形式上来看，我们需要把这个collection/seq解构为
+  独立的参数，apply就是用来做这个事情的。
+
+  实例：
+
+  \begin{schemecode}
+    ;;; args显示是一个list，但是+需要的是独立的任意多个参数，
+    ;;; 于是我们需要使用apply取出list的内容，然后交给+来处理。
+    (defn my-add
+      [& args]
+      (apply + args))
+
+    ;;; 又比如，max, min的参数也是任意多个独立参数，当我们需要
+    ;;; 找出一个collection/seq中的最大、最小值时：
+    (apply max [0 1 2 3])
+    (apply min [0 1 2 3])
+  \end{schemecode}
+
+
+  \section[使用complement函数]{使用complement函数}
+  complement函数以函数为参数并且返回一个函数，两个函数返回的布尔真值互反。
+  
+  \begin{schemecode}
+(defn print-coll
+  [coll]
+  (if (not (empty? coll))
+    (apply println coll)
+    (println "Empty collection!")))
+
+;;; 使用complement函数
+(defn print-coll-2
+  [coll]
+  (if ((complement empty?) coll)
+    (apply println coll)
+    (println "Empty collection!")))
+  \end{schemecode}
+
+
+  \section[-> and ->>]{-> and ->>}
+  ->和->>很相似，他们可以方便的用于嵌套的函数调用。
+
+  例如：当$x=3$时，求$(x+5-1)*2$
+
+  \begin{schemecode}
+(* (- (+ 3 5) 1) 2)
+;;; 相比于-> macro:
+(-> 3 (+ 5) (- 1) (* 2))
+  \end{schemecode}
+
+  ->与->>的区别为：->将参数插入表达式的“第二个”位置，
+  而->>将参数插入表达式的“最后”。
+
+  \begin{schemecode}
+;;; 结果为：14
+(-> 3 (+ 5) (- 1) (* 2))
+
+;;; 结果为：-14
+(->> 3 (+ 5) (- 1) (* 2))
+  \end{schemecode}
+
+
+  \section[分裂collection]{分裂collection}
+  很多时候我们需要将一个coll分裂为多个部分，如将重复的内容分组：
+
+  [1 1 1 2 3 3 4 4 4 4 5] => [[1 1 1] [2] [3 3] [4 4 4 4] [5]]
+
+  根据各个小组的情况不同，clojure提供了不同的函数，如果每个小组大小相等，
+  我们可以使用partition函数：
+
+  \begin{schemecode}
+;;; 结果为：((1 2) (3 4))
+(partition 2 [1 2 3 4])
+  \end{schemecode}
+
+  如果分组大小不同，如上面的情况，可以使用partition-by函数：
+
+  \begin{schemecode}
+;;; 如果f返回的值变化了，那么partition-by就知道“该另起一组”了！
+(partition-by f coll)
+(partition-by identity [1 1 1 2 3 3 4 4 4 4 5]
+  \end{schemecode}
+
+  实例：\par
+  当我们想“压缩”一个collection时可以使用这两个函数：
+
+  \begin{schemecode}
+;;; [1 1 1 2 3 3 4 4 4 4 5] => (1 2 3 4)
+(defn compress-colletion
+  [coll]
+  (map first (partition-by identity coll)))
+  \end{schemecode}
+
+
+  \section[元素分类]{元素分类}
+  将collection中的所有元素按照某个标准分类：group-by
+
+  \begin{schemecode}
+(group-by pred coll)
+  \end{schemecode}
+
+  group-by遍历coll，按照pred函数的返回值将所有元素分类，
+  pred有几种返回值元素就会被分为几类，结果保存到一个map中，
+  以pred的返回值作为key，分类好的元素构成vector并作为key的值。
+
+  \begin{schemecode}
+; e.g. 1
+(group-by type [1 :a 2 :b "a" "b"])
+; 结果：
+;{java.lang.Long [1 2],
+; clojure.lang.Keyword [:a :b],
+; java.lang.String ["a" "b"]}
+
+; e.g. 2
+(group-by identity [1 1 2 3 2 1 1])
+; 结果：
+; {1 [1 1 1 1], 2 [2 2], 3 [3]}
+
+; e.g. 3
+; 计算元素出现的次数
+(defn count-occurrences
+  [coll]
+  (into {}
+    (for [[k v]] (group-by identity coll)
+      [k (count v)])))
+
+; e.g. 4
+; 使用reduce的例子：去除重复元素
+; [1 2 1 3 1 4 5] => [1 2 3 4 5]
+(defn remove-duplacate
+  [coll]
+  (reduce #(if ((set %1) %2)
+               %1
+               (conj %1 %2))
+          [] coll))
+; reduce的作用就是“缩减”，当然包括将多个元素缩减为一个collection。
+
+; e.g. 5
+; 仍然是reduce的例子：反作用
+; reduce一般是将函数作用到集合的每个元素上，但是反过来，集合的元素也可以是函数，
+; 这样就可以来个“反作用”：例如重写comp函数。
+(defn my-comp
+  [& fs]
+  (fn [& args]
+    (let [ret (apply (last fs) args)
+          fs (rest (reverse fs))]
+      (reduce #(%2 %1) ret fs))))
+  \end{schemecode}
+  
+
+  \section[函数类比]{函数类比}
+  iterate函数对应到数学里面的类比：
+  
+  \begin{schemecode}
+(iterate f init)
+  \end{schemecode}
+  $$f(...f(f(f(init)))...)$$
+
+  reduce函数对应到数学里面的类比：
+  
+  \begin{schemecode}
+(reduce f init [0 1 2 3 4 5])
+  \end{schemecode}
+  $$f(f(f(f(f(f(init, 0), 1), 2), 3), 4), 5)$$
+
+
+  \section[lazy-seq]{lazy-seq}
+  lazy-seq似乎很神奇，的确！
+
+  \subsection[如何创建lazy-seq？]{如何创建lazy-seq？}
+  首先考虑直接使用内置函数，如：\par
+  repeat, repeatly, iterate, range, map, filter, remove, etc.
+  
+  \subsection[lazy-seq函数如何使用？]{lazy-seq函数如何使用？}
+  如果内置函数无法完成工作，就直接使用lazy-seq函数吧：
+
+  \begin{schemecode}
+; body必须返回一个seq或者nil
+(lazy-seq
+  [& body])
+  \end{schemecode}
+  
+  当lazy-seq第一次调用时，如(first my-lazy-seq)，lazy-seq将body产生的序列返回给
+  first，并且将该序列缓存来以供后续使用，下次再调用lazy-seq时就不会再执行body了。
+
+  要创建一个lazy-seq必须使用递归！
+
+  \begin{schemecode}
+(defn my-reductions
+  ([f [x & xs]] (reds f x xs))
+  ([f init coll]
+     (lazy-seq
+      (cons init
+            (when-let [[first & rest] (seq coll)]
+              (my-reductions f (f init first) rest))))))
+; 1. lazy-seq返回一个序列，当使用该序列时，如(ffirst (my-reductions + (range)))，
+;    body被执行生成一个序列(cons函数)，该序列的rest部分仍然是一个lazy-seq，否则，
+;    第一次使用时序列即被“全部展开”，那么该序列就不是lazy seq了。
+; 2. ffirst首先取出一个元素，此时lazy-seq返回一个列表：
+;      (init (lazy-seq))
+;    该序列的rest部分仍然是一个lazy seq，它是由my-reductions递归调用产生的，
+;    序列展开又被暂停了。
+; 3. ffirst取出第二个元素，此时rest部分又被展开：
+;      (init (init lazy-seq))
+;    rest的rest部分又是一个lazy seq，它仍然由my-reductions递归调用产生，
+;    序列展开又被暂停了。
+; 循环往复，这个惰性序列用几次就被展开几次，也就是说，用一个它就计算一个。
+; 当然，也可以用一个它计算多个，比如32个，这样每隔32个才计算一次，效率会有提升。
+  \end{schemecode}
+  
+  \section[区分list和vector]{区分list和vector}
+  对于任意coll，已知coll为list或者vector，
+
+  \begin{schemecode}
+(= (cons :type coll) (conj coll :type))
+  \end{schemecode}
+
+  如果返回true是否一定说明coll是list呢？答案是：否！
+
+  反例：\par
+  \begin{schemecode}
+(def coll
+  [:type :type])
+; 或者
+(def coll
+  [])
+  \end{schemecode}
+
+  那么该如何区分list和vector呢？
+  
+  \begin{schemecode}
+(let [c (conj coll :a)]
+  (= (cons :type coll) (conj coll :type))
+  \end{schemecode}
+
+  对于vector, 两种返回值为：\par
+  :type coll :a 和 coll :a :type
+
+  注意结尾处，两者一定是不相等的！
+
+
+  \section[Get var by name string]{Get var by name string}
+  目的：name string => var/value of var
+
+  \begin{schemecode}
+;;; 获取name string对应的var
+(resolve (symbol "first"))
+; or
+(-> "first" symbol resolve)
+;;; 结果为name string对应的var
+
+;;; 附带取var的值
+(def my-var 42)
+(-> "my-var" symbol resolve)
+; 结果：#<Var@13e6f83: 42>
+@(-> "my-var" symbol resolve)
+; 结果：42
+
+;;; 思考：function的value是什么呢？
+  \end{schemecode}
+
+
+  \section[Listing special forms]{Listing special forms}
+  列出所有的special forms：
+
+  \begin{schemecode}
+(keys clojure.lang.Compiler/specials)
+  \end{schemecode}
+
+
+  \section[正则表达式]{正则表达式}
+  clojure中的正则表达式使用方法总结。
+
+  \subsection[re-pattern]{re-pattern}
+  使用正则表达式首先要创建一个正则表达式对象(java.util.regex.Pattern)，
+
+  \begin{schemecode}
+;;; \d 表示digit，+表示一个或者多个，\\用来转义"\"，
+;;; re-pattern创建pattern时必须转义。
+(re-pattern "\\d+")
+
+;;; 另外更常用的是reader macro的形式，这种方式不需要进行转义，如
+#"\d+"
+  \end{schemecode}
+
+  \subsection[re-find]{re-find}
+  有了pattern对象，我们就可以进行查找了：re-find
+
+  re-find有两种格式，其结果是一样的，
+
+  \begin{schemecode}
+(re-find matcher)
+;;; 什么是matcher呢，见下一节。
+(re-find re s)
+;;; 示例
+(re-find #"\d+" "123A456B789C")
+  \end{schemecode}
+  
+  \subsection[re-matcher]{re-matcher}
+  matcher(java.util.regex.Matcher)就是Pattern对象和查找对象的组合：
+
+  \begin{schemecode}
+(def matcher (re-matcher #"\d+" "123A456B789C"))
+;;; 使用matcher
+(re-find matcher)
+  \end{schemecode}
+
+  问题：为何要使用matcher呢？
+
+  答案：matcher有时是必须的，考虑从"123A456B789C"中找出所有数字的例子，
+
+  \begin{schemecode}
+(re-find #"\d+" "123A456B789C")
+;;; 运行结果："123"
+(re-find #"\d+" "123A456B789C")
+;;; 运行结果："123"
+(re-find #"\d+" "123A456B789C")
+;;; 运行结果："123"
+  \end{schemecode}
+
+  事与愿违不是吗？我们本想找到所有三处匹配，但是每次都只能找到第一处，
+  此时就需要matcher了。matcher对象内部维护一个状态(bad!)，它相当于一个
+  迭代器，运行一次re-find，它就迭代一次，知道找到所有匹配。
+
+  \begin{schemecode}
+(def matcher (re-matcher #"\d+" "123A456B789C"))
+
+(re-find matcher)
+;;; 运行结果："123"
+(re-find matcher)
+;;; 运行结果："456"
+(re-find matcher)
+;;; 运行结果："789"
+  \end{schemecode}
+
+  这就是matcher的作用！
+
+  \subsection[re-groups]{re-groups}
+  使用matcher时，re-find可不能乱用，因为它是迭代进行的，可是有时
+  我们的确想多次使用当前的匹配结果（当然你可以增加临时变量）而不
+  进行迭代，此时就要re-groups出场了，它只是返回"当前/最新"的匹配结果，
+  而不进行迭代。
+
+  \begin{schemecode}
+;;; 定义matcher
+(def matcher (re-matcher #"\d+" "123A456B789C"))
+;;; 当前/最新的匹配结果是什么呢？
+(re-groups matcher)
+; 结果：IllegalStateException No match found  java.util.regex.Matcher.group (:-1)
+; 为何如此呢？因为当前的确没有任何匹配，re-groups就报错了，需要首先运行re-find
+; 找到一处匹配才行。
+(re-find matcher)
+; 结果："123"
+(re-groups matcher)
+; 结果："123"
+(re-groups matcher)
+; 结果："123"，仍然是"123"
+(re-find matcher)
+; 结果："456"
+(re-groups matcher)
+; 结果："456"
+(re-find matcher)
+; 结果："789"
+(re-find matcher)
+; 结果：nil。匹配完了！
+(re-groups matcher)
+; 结果：IllegalStateException No match found  java.util.regex.Matcher.group (:-1)
+; 没有匹配结果，更第一次运行re-groups一样的结果：异常！
+  \end{schemecode}
+
+  \subsection[re-seq]{re-seq}
+  上面说的re-find的多次匹配情况是很"Java"的方式，并不是clojure的方式，真正的clojure
+  的方式是使用re-seq，
+
+  \begin{schemecode}
+(re-seq #"\d" "clojure 1.1.5")
+; 结果： ("1" "1" "5")
+  \end{schemecode}
+
+  re-seq返回一个惰性列表，它保存了所有的匹配结果。
+
+  \subsection[分组匹配模式]{分组匹配模式}
+  分组匹配模式是很重要的，如找到字母A两端的数字，
+
+  \begin{schemecode}
+(re-find #"(\d+)A(\d+)" "123A456B789C")
+; 结果：["123A456" "123" "456"]
+;;; 首先把整体的匹配结果列出来，然后紧接着是分组的结果。
+  \end{schemecode}
+
+  \subsection[re-matches]{re-matches}
+  另外还有一个re-matches函数，它有点儿不同，re-find意在"寻找"匹配的模式，
+  结果是找到"所有"的匹配，但是re-matches意在"判断"目标跟正则表达式是否匹配，
+  如果匹配就返回目标，否则返回nil。
+
+  \begin{schemecode}
+(re-matches #"hello" "hello world")
+; 结果：nil
+(re-matches #"hello.*" "hello world")
+; 结果："hello world"
+(re-matches #"hello(.*)" "hello world")
+; 结果：["hello world" "world"]
+  \end{schemecode}
+
+  
+
+
+  
+  
+  
+   The seq function yields an implementation of ISeq appropriate to the collection. 
 \end{document}
