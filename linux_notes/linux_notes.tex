@@ -352,6 +352,71 @@
   1. cat `find . -type f -print` | wc -l\\
   2. find . -type f -print | xargs cat | wc -l
 
+  \section[About Unix Pipe]{About Unix pipe}
+  Unix的pipe在前后两个命令之间传递的到底是什么呢？
+  例如：
+
+  \begin{bashcode}
+    ls | cat
+  \end{bashcode}
+
+  ls和cat之间的pipe内容是什么呢？\\
+  答案：是“字节流”。
+
+  pipe会将ls的stdout内容打包到一个byte buffer，然后将buffer的内容绑定为
+  cat的stdin，由于cat没有任何文件作为参数，所以cat从stdin读取内容并打印
+  出来，于是ls的stdout结果就被cat打印出来了。
+
+  所以，cat打印出来的并非各个“文件”(ls列出的文件)的内容，而是“文件名列表”
+  (ls列出的文件)。pipe绑定的“只是”stdout与stdin而已。
+
+  有时这事与愿违，不是吗？我们可能本想将ls列出的文件的内容打印出来，而非
+  文件名列表，这样如何操作呢？
+
+  这就需要我们将ls的输出进行解析，把各个文件名解析为cat的参数，然后调用
+  cat，而xargs恰好能胜此任。
+
+  \begin{bashcode}
+    ls | xargs -t cat
+  \end{bashcode}
+
+  -t选项会让xargs显示出它要如何执行cat，如果当前路径下有两个文件file.h，
+  file.c，那么xargs会如下显示：
+
+  \begin{bashcode}
+    cat file.h file.c
+  \end{bashcode}
+
+  其实我们从terminal中直接调用：cat file.h file.c时，shell解析两个参数，
+  分别将其压入cat的stack frame(argv部分)，xargs所做的正是如此，但是参数
+  并非stdin，pipe只绑定stdin，不涉及命令的参数。
+
+  另外，pipe在整个命令结束之后才将其stdout转送到下一个命令的stdin，如：
+  
+  \begin{bashcode}
+    find -type f -name *.tex -exec cat {} \; | wc -l
+  \end{bashcode}
+
+  pipe会等find完全执行结束之后才将其stdout内容转送到wc的stdin，虽然
+  find执行期间cat可能被调用了多次。
+
+
+  除了使用xargs还有没有别的解决方法呢？当然有！
+  既然xargs的做法跟shell类似，我们当然可以让shell替我们解析ls的stdout
+  内容，然后将解析结果作为cat的参数：
+
+  \begin{bashcode}
+    cat `ls`
+    # 或者
+    cat \$(ls)
+  \end{bashcode}
+
+  bash会开辟一个sub shell来运行ls命令，然后将运行结果放到cat的参数位置，
+  之后再次解析整个命令：cat file.h file.c，任务达成。不过，由于POSIX对
+  命令参数长度做了限制，如果当前目录下有很多文件，成千上万，就会造成
+  参数长度突破限制，此时又需要xargs来救急了，如有必要，xargs会将参数分割
+  为多个部分，多次调用cat命令，从而使得cat的参数长度不会突破限制。
+
   \section[Windows客串：explorer.exe和cmd.exe的用法]{windows客串：explorer.exe和cmd.exe的用法}
   打开目录并打开资源管理器侧边栏：\\
   explorer.exe /e, [dir-path]
@@ -365,7 +430,7 @@
   使用系统默认程序打开文件：\\
   cmd.exe /c [file-path]
 
-  \section[Windows客串：批处理-字符串操作]{windows客串：批处理-字符串操作}
+  \section[Windows客串：批处理-字符串操作]{windows客串：批处理之字符串操作}
   批处理中截取字符串的统一格式为：
   
   \begin{bashcode}
@@ -403,6 +468,7 @@
   \end{bashcode}
 
   示例：
+  
   \begin{bashcode}
     set str=sun ybin
     echo 名字：%str%
