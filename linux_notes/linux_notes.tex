@@ -239,6 +239,8 @@
   -classpath的值可以是folder、.jar、.zip，其中包含的都是.class文件。\\
   runnable是一个.class文件，扩展名.class不要加上。
 
+  注意：-classpath或者-cp时，必须加上“当前目录”，否则找不到runnable，这个太蛋疼了吧！
+
   \subsection[反汇编命令：javap]{反汇编命令：javap}
   javap是java的反汇编命令，但是很少有人用它来进行反汇编，
   原因是有很多其他工具反汇编工作做的比javap好的多，但是

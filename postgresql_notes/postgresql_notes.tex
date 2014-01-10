@@ -1,0 +1,75 @@
+﻿
+\documentclass[a4paper,11pt]{article}
+
+\input{../styles/article_preamble}
+\input{../styles/tikz_preamble}
+
+\sybtitle{PosgreSQL notes}
+\sybauthor{孙延宾}
+\sybdate{\today}
+
+\begin{document}
+\tt % I love Typewriter font.
+%%%%%%%% the title page and toc %%%%%%%%%%
+\pagestyle{header}
+\sybmaketitle
+\tableofcontents
+\newpage
+
+%%%%%%% the main content %%%%%%%%%
+\pagestyle{main}
+\setcounter{page}{1}
+
+\part[Basic Usage]{Basic Usage}
+\section[命令行起步]{命令行起步}
+安装完成PostgreSQL之后的第一次操作。
+\subsection[创建超级用户]{创建超级用户}
+\begin{bashcode}
+  createuser.exe -U postgres -s -P -e <user-name>
+  
+  -U: postgres 使用postgres用户(安装时已创建)创建一个新的用户
+  -s: super user，新创建超级用户
+  -P: password，设置密码
+  -e: echo，命令回显
+\end{bashcode}
+
+\subsection[创建数据库]{创建数据库}
+\begin{bashcode}
+  createdb.exe -p 5432 -e -U <user-name> <db-name>
+
+  -p: port，server的端口(默认为5432)
+  -e: echo，命令回显
+  -U: user，创建数据库的用户名
+\end{bashcode}
+
+\subsection[连接数据库]{连接数据库}
+\begin{bashcode}
+  psql.exe -p 5432 -U <user-name> -d <db-name>
+
+  -p: port，端口
+  -d: db name，数据库名称
+  -U: user，连接数据库的用户名
+\end{bashcode}
+\subsection[创建表]{创建表}
+\begin{bashcode}
+  psql.exe -p 5432 -U <user-name> -d <db-name> -f <filename.sql>
+
+  -p: port
+  -U: user
+  -d: db name
+\end{bashcode}
+
+其中，filename.sql为sql脚本文件，
+
+\begin{sqlcode}
+CREATE TABLE mytable (
+  firstname varchar(255),
+  lastname varchar(255),
+  address varchar(255),
+  city varchar(255)
+);
+ALTER TABLE mytable OWNER TO <user-name>;
+\end{sqlcode}
+
+
+\end{document}
