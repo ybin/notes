@@ -1,0 +1,126 @@
+% -*- coding: utf-8 -*-
+
+\documentclass[a4paper,11pt]{article}
+
+\input{../styles/article_preamble}
+\input{../styles/tikz_preamble}
+
+\sybtitle{Maven Notes}
+\sybauthor{孙延宾}
+\sybdate{\today}
+
+\begin{document}
+\tt % I love Typewriter font.
+%%%%%%%% the title page and toc %%%%%%%%%%
+\pagestyle{header}
+\sybmaketitle
+\tableofcontents
+\newpage
+
+%%%%%%% the main content %%%%%%%%%
+\pagestyle{main}
+\setcounter{page}{1}
+
+\part[Basic Usage]{Basic Usage}
+\section[What is maven plugin]{What is maven plugin}
+A \emph{plugin} is a collection of \emph{goals} with a general common purpose.\label{sec:plugin}
+
+Maven的所有功能都是通过插件完成的，这跟Eclipse类似，其实Maven的每个phase(阶段)
+都是由一些goal组成的，
+
+\begin{bashcode}
+  mvn compiler:compile
+\end{bashcode}
+
+这个命令你可能不是很熟悉，compiler表示“compiler plugin”，
+compile表示“compile goal”，组合形式就是“plugin:goal”。
+
+\begin{bashcode}
+  mvn compile
+\end{bashcode}
+
+这个命令你一定很熟悉，其实compile这个phase就是有compiler:compile组成的，也就是说
+这个phase就是要完成compiler:compile这个goal。
+
+类似的，package phase的目标为“jar:jar”(对于packaging为jar的工程)。
+
+\section[lifecycle]{lifecycle}
+The default lifecycle:
+
+\begin{itemize}
+\item validate
+\item compile
+\item test
+\item package
+\item integration-test
+\item verify
+\item install
+\item deploy
+\end{itemize}
+
+The clean lifecycle:
+
+\begin{itemize}
+\item pre-clean
+\item clean
+\item post-clean
+\end{itemize}
+
+The site lifecycle:
+\begin{itemize}
+\item pre-size
+\item site: create project site documentation.
+\item post-site
+\item site-deploy
+\end{itemize}
+
+
+\section[plugin help]{plugin help}
+根据第\ref{sec:plugin}节的说明，一个plugin就是一个goal的集合，那我们如何查看
+某一个plugin的说明呢，又如何得知某一个plugin又有哪些goal呢？
+
+这些信息可以通过maven-help-plugin这个plugin来获取到，这个plugin有很多个goal，
+我们一个一个介绍。
+
+\subsection[describe]{describe}
+describe就是显示plugin的说明信息以及它的goal列表。
+
+\begin{bashcode}
+  mvn help:describe -DgroupId=<xx> -DartifactId=<yy> [-Dversion=<zz>]
+\end{bashcode}
+
+或者用更简单的形式，
+
+\begin{bashcode}
+  mvn help:describe -Dplugin=<name>
+  # 如，
+  mvn help:describe -Dplugin=help
+\end{bashcode}
+
+其实还有更加直接的方式，一般plugin都提供help这个goal，所以不妨直接执行
+这个goal，如果失败了再使用上面的help:describe来查看，
+
+\begin{bashcode}
+  mvn <plugin>:<goal>
+  # help:describe不正是执行help插件的describe目标吗！
+  mvn <plugin>:help
+  # 例如，
+  mvn help:help
+  mvn eclipse:help
+  mvn compiler:help
+\end{bashcode}
+
+一般来说，plugin的help都提供了进一步查询该插件的某个goal的用法的方法，
+
+\begin{bashcode}
+  mvn help:help -Ddetail=true -Dgoal=<goal>
+  mvn shade:help -Ddetail=true -Dgoal=<goal>
+\end{bashcode}
+
+所以，可以用这种方法来查看某一个插件的某一个goal到底有哪些参数可以设置。
+
+\subsection[system]{system}
+
+
+
+\end{document}
