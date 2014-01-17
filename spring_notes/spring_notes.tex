@@ -1,0 +1,1082 @@
+
+\documentclass[a4paper,11pt]{article}
+
+\input{../styles/article_preamble}
+\input{../styles/tikz_preamble}
+
+\sybtitle{Spring framework Notes}
+\sybauthor{孙延宾}
+\sybdate{\today}
+
+\begin{document}
+\tt % I love Typewriter font.
+%%%%%%%% the title page and toc %%%%%%%%%%
+\pagestyle{header}
+\sybmaketitle
+\tableofcontents
+\newpage
+
+%%%%%%% the main content %%%%%%%%%
+\pagestyle{main}
+\setcounter{page}{1}
+
+\part[Spring framework]{Spring framework}
+
+\section[web.xml解析]{web.xml解析}
+web.xml文件用来配置Web应用，主要包括context-param, listener, filter, servlet等，
+它们的加载顺序为：\\
+context-param => listener => filter => servlet
+
+它们的加载顺序是固定的，与xml中的出现顺序无关，但是同一类型的元素之间是按照顺序加载的，
+如多个filter是按照先后顺序加载的，多个servlet也是按照先后顺序加载的。
+
+
+\subsection[schema]{schema}
+\begin{xmlcode}
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="2.4" 
+    xmlns="http://java.sun.com/xml/ns/j2ee" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee 
+        http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
+</web-app>
+\end{xmlcode}
+
+\subsection[icon]{icon}
+icon用来指定Web应用的大小图标。
+
+\begin{xmlcode}
+<icon>
+    <small-icon>/images/app_small.gif</small-icon>
+    <large-icon>/images/app_large.gif</large-icon>
+</icon>
+\end{xmlcode}
+
+\subsection[display-name]{display-name}
+设置Web应用的名称。
+
+\begin{xmlcode}
+<display-name>Tomcat Example</display-name>
+\end{xmlcode}
+
+\subsection[discreption]{discreption}
+Web应用的描述。
+
+\begin{xmlcode}
+<disciption>Tomcat Example servlets and JSP pages.</disciption>
+\end{xmlcode}
+
+\subsection[context-param]{context-param}
+设置参数，该参数在整个应用范围内均可见，它们将会保存到ServletContext对象中。
+
+\begin{xmlcode}
+<context-param>
+    <param-name>ContextParameter</para-name>
+    <param-value>test</param-value>
+    <description>It is a test parameter.</description>
+</context-param>
+\end{xmlcode}
+
+这些参数在listener, filter, servlet中均可见，可以这样使用：
+
+getServletContext().getInitParameter("param-name");
+
+
+\subsection[listener]{listener}
+listener分为多种，如ServletContext监听器，Sesssion监听器，Log4j监听器等，
+在具体实例创建、销毁时这些监听器的相关方法会被调用到，具体解释请参照
+第\ref{sec:listener}节。
+
+\begin{xmlcode}
+<listener> 
+    <listerner-class>com.listener.SessionListener</listener-class> 
+</listener>
+\end{xmlcode}
+
+\subsection[filter]{filter}
+filter用于对request和response进行拦截，在request到达servlet之前进行预处理，
+在response发送给客户端之前进行预处理等，详见第\ref{sec:filter}节。
+
+\begin{xmlcode}
+<filter>
+    <filter-name>setCharacterEncoding</filter-name>
+    <filter-class>com.myTest.setCharacterEncodingFilter</filter-class>
+    <init-param>
+        <param-name>encoding</param-name>
+        <param-value>UTF-8</param-value>
+    </init-param>
+</filter>
+<filter-mapping>
+    <filter-name>setCharacterEncoding</filter-name>
+    <url-pattern>/*</url-pattern>
+</filter-mapping>
+\end{xmlcode}
+
+filter用来定义过滤器，filter-mapping用于将filter映射到servlet或者url。
+
+\subsection[servlet]{servlet}
+servlet用于定义servlet，servlet-mapping用于将servlet映射到url。
+
+\begin{xmlcode}
+<servlet>
+    <servlet-name>snoop</servlet-name>
+    <servlet-class>SnoopServlet</servlet-class>
+    <init-param>
+        <param-name>foo</param-name>
+        <param-value>bar</param-value>
+    </init-param>
+    <run-as>
+        <description>Security role for anonymous access</description>
+        <role-name>tomcat</role-name>
+    </run-as>
+</servlet>
+<servlet-mapping>
+    <servlet-name>snoop</servlet-name>
+    <url-pattern>/snoop/*</url-pattern>
+</servlet-mapping>
+\end{xmlcode}
+
+\subsection[session-config]{session-config}
+配置session。
+
+\begin{xmlcode}
+<session-config>
+    <!-- 单位为分钟 -->
+    <session-timeout>120</session-timeout>
+</session-config>
+\end{xmlcode}
+
+\subsection[mime-mapping]{mime-mapping}
+将文件后缀映射为mime type。
+
+\begin{xmlcode}
+<mime-mapping>
+    <extension>htm</extension>
+    <mime-type>text/html</mime-type>
+</mime-mapping>
+\end{xmlcode}
+
+\subsection[welcome-file-list]{welcome-file-list}
+设置欢迎界面(首页)。
+
+\begin{xmlcode}
+<welcome-file-list>
+    <!-- 依次查找，找到为止 -->
+    <welcome-file>index.jsp</welcome-file>
+    <welcome-file>index.html</welcome-file>
+    <welcome-file>index.htm</welcome-file>
+</welcome-file-list>
+\end{xmlcode}
+
+\subsection[error-page]{error-page}
+两种方式设置错误页面。
+
+\begin{xmlcode}
+<!-- 1、通过错误码来配置error-page。 -->
+<error-page>
+    <error-code>404</error-code>
+    <location>/NotFound.jsp</location>
+</error-page>
+<!-- 2、通过异常的类型配置error-page。 -->
+<error-page>
+    <exception-type>java.lang.NullException</exception-type>
+    <location>/error.jsp</location>
+</error-page>
+\end{xmlcode}
+
+\subsection[jsp-config]{jsp-config}
+配置jsp页面。包括两部分：taglib和jsp-property-group，
+其中，jsp-property-group有8个元素。
+
+\begin{xmlcode}
+<jsp-config>
+    <taglib>
+        <taglib-uri>Taglib</taglib-uri>
+        <taglib-location>/WEB-INF/tlds/MyTaglib.tld</taglib-location>
+    </taglib>
+    <jsp-property-group>
+        <description>Special property group for JSP Configuration JSP example.</description>
+        <display-name>JSPConfiguration</display-name>
+        <url-pattern>/jsp/* </url-pattern>
+        <el-ignored>true</el-ignored>
+        <page-encoding>UTF-8</page-encoding>
+        <scripting-invalid>true</scripting-invalid>
+        <include-prelude>/include/prelude.jspf</include-prelude>
+        <include-coda>/include/coda.jspf</include-coda>
+    </jsp-property-group>
+</jsp-config>
+\end{xmlcode}
+
+\section[URL Mapping规则]{URL Mapping规则}
+当一个请求发送到servlet容器时(一个servlet一个容器)，servlet会首先将上下文路径去掉，
+如请求的url为：http://localhost:8080/test/index.html，test为我们的servlet(即在webapp
+路径存在下一个test.war)，这是test这个servlet的容器首先将
+http://localhost:8080/test去掉，然后拿/index.html来做mapping。
+
+匹配规则大致如下：
+
+\begin{itemize}
+\item 路径越精确越优先匹配
+\item 能匹配上的路径越多越优先，如/a/*比/*要优先
+\item 扩展匹配，如*.html
+\end{itemize}
+
+\section[Listener in Spring]{Listener in Spring}
+\label{sec:listener}
+
+\section[Filter in Spring]{Filter in Spring}
+\label{sec:filter}
+
+
+\section[Spring Annotations]{Spring Annotations}
+通过注解的方式进行“注入”，其侧重点是“注入”，也就是说只是为了方便“注入”，
+所以bean的模板类、声明，该怎么写还得怎么写，下面通过对比进行说明。
+
+首先定义bean的模板类，
+
+\begin{javacode}
+package annotation;
+public class MyBean {
+  private String name;
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public String getName() {
+    return this.name;
+  }
+}
+\end{javacode}
+
+然后是对bean进行声明，
+
+\begin{xmlcode}
+  <!-- beans.xml -->
+  <beans>
+    <!-- 告诉spring，我们要使用注解进行注入 -->
+    <context:annotation-config />
+
+    <bean id="foo" class="annotation.MyBean">
+      <property name="name" value="xxx" />
+    </bean>
+
+    <bean id="bar" class="annotation.MyBean">
+      <property name="name" value="yyy" />
+      <!-- what's this? -->
+      <qualifier value="bar" />
+    </bean>
+  </beans>
+\end{xmlcode}
+
+\subsection[xml方式注入]{xml方式注入}
+\begin{javacode}
+  ApplicationContext ctx = new ClassPathXmlApplicationContext(
+                           "beans.xml");
+  MyBean foo = (MyBean) ctx.getBean("foo");
+  MyBean bar = (MyBean) ctx.getBean("bar");
+\end{javacode}
+
+\subsection[annotation方式注入]{annotation方式注入}
+\begin{javacode}
+  @Autowired
+  @Qualifier(value="bar")  // 跟xml中的设置对应起来了
+  private MyBean bar;
+
+  @Resource(name="foo")
+  private MyBean foo;
+
+  // 上面两个对象，spring会自动注入，下面直接用就可以了
+  public void print() {
+    System.out.println(foo.name + ", " + bar.name);
+  }
+\end{javacode}
+
+说明：bean的模板类定义、xml声明，这些该怎么做怎么做，只是等到实际
+注入时才有所区分。使用注释方式进行注入时，配置文件中必须增加对
+annotion的配置，即<context:annotation-config />，然后spring就会自动
+扫描Java代码，遇到@Autowired、@Resource这样的注释时就会自动注入了。
+
+注意：@Autowired注入时是byType，而我们定义两个同样类型的bean，导致
+注入时报错，所以使用@Qualifier对另个bean进行区分，@Resource注入时是
+byName的，使用时必须添加name="foo"这样的设置，这无形中增加了代码和
+xml之间的耦合。
+
+另外，对于注释方式注入，MyBean还可以在模板类定义中直接通过注释声明
+init method和destroy method，它们分别在对象构造完成和销毁之前被调用，如，
+
+\begin{javacode}
+package annotation;
+public class MyBean {
+  private String name;
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  public String getName() {
+    return this.name;
+  }
+
+  @PostConstruct
+  public void init() {
+    System.out.println("bean successfully initialized");
+  }
+  
+  @PreDestroy
+  public void cleanUp() {
+    System.out.println("clean up called");
+  }
+}
+\end{javacode}
+
+对于xml方式注入，这两个函数要在bean声明时说明。
+
+\section[Spring Resource读入]{Spring Resource读入}
+读入resource，如文件，url等，这些内容会封装到
+org.springframework.core.io.Resource对象中，然后使用该对象的
+getInputStream获得input stream，
+
+\begin{description}
+\item [FileSystemResource: ] e.g. new FileSystemResource("src/sample.txt");
+\item [UrlResource: ] e.g. new UrlResource("file:///C:/sample.txt");
+\item [ClassPathResource: ] e.g. new ClassPathResource("sample.txt");
+\end{description}
+
+\section[PropertyPlaceholder]{PropertyPlaceholder}
+引入property文件，然后在xml中读取变量。
+
+\begin{xmlcode}
+<bean class=
+      "org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+  <property name="locations" value="classpath:com/foo/jdbc.properties"/>
+</bean>
+
+<bean id="dataSource" destroy-method="close"
+    class="org.apache.commons.dbcp.BasicDataSource">
+  <property name="driverClassName" value="${jdbc.driverClassName}"/>
+  <property name="url" value="${jdbc.url}"/>
+  <property name="username" value="${jdbc.username}"/>
+  <property name="password" value="${jdbc.password}"/>
+</bean>
+\end{xmlcode}
+
+jdbc.properties文件内容，
+
+\begin{bashcode}
+jdbc.driverClassName=org.hsqldb.jdbcDriver
+jdbc.url=jdbc:hsqldb:hsql://production:9002
+jdbc.username=sa
+jdbc.password=root
+\end{bashcode}
+
+
+\section[Default DispatcherServlet Configuration]{Default DispatcherServlet Configuration}
+在\emph{org.springframework.web.servlet}包中，有一个
+\emph{DispatcherServlet.properties}文件，其中保存了DispatcherServlet
+的默认设置。
+
+\section[Two kind of bean]{Two kind of bean}
+bean有两种：普通bean、factory bean。
+
+\subsection[普通bean]{普通bean}
+普通bean实例化时直接创建对应class的实例，如
+
+\begin{xmlcode}
+<bean id="commonBean" class="com.example.main.CommonBean" />
+\end{xmlcode}
+
+Spring在实例化该bean时，直接创建一个com.example.main.CommonBean的实例。
+
+\subsection[工厂bean]{工厂bean}
+与普通bean不同，factory bean实例化时并不返回factory bean本身的实例，而是
+返回getObject()的返回值，factory bean均实现FactoryBean<T>这个interface，
+
+\begin{javacode}
+public interface FactoryBean<T> {
+  T getObject() throws Exception;
+  Class<?> getObjectType();
+  boolean isSingleton();
+}
+\end{javacode}
+
+\subsection[工厂bean实例]{工厂bean实例}
+连接数据库时经常会用到Spring的ORM模块，事实上这也是推荐的做法，
+
+\begin{xmlcode}
+<bean id="dataSource" class=
+      "org.springframework.jdbc.datasource.DriverManagerDataSource">
+    <property name="driverClassName" value="${jdbc.driver}" />
+    <property name="url" value="${jdbc.url}" />
+    <property name="username" value="${jdbc.user}" />
+    <property name="password" value="${jdbc.password}" />
+</bean>
+
+<!-- LocalSessionFactoryBean便是一个factory bean，
+     它的getObject()返回一个Hibernate的SessionFactory对象 -->
+<bean id="sessionFactory" class=
+      "org.springframework.orm.hibernate4.LocalSessionFactoryBean">
+    <property name="dataSource" ref="dataSource"/>
+    <property name="mappingLocations">
+        <list>
+            <value>classpath*:hbm/User.hbm.xml</value>
+        </list>
+    </property>
+    <property name="hibernateProperties">
+        <props>
+            <prop key="hibernate.dialect">
+                org.hibernate.dialect.PostgreSQLDialect</prop>
+            <prop key="hibernate.show_sql">true</prop>
+        </props>
+
+    </property>
+</bean>
+\end{xmlcode}
+
+然后在java代码中进行注入，
+
+\begin{javacode}
+public exampleDAO {
+  // @Autowired注入时是byType的，而LocalSessionFactoryBean这个bean的
+  // getObjectType()恰好返回SessionFactory类型，匹配！
+  @Autowired
+  private SessionFactory sf;
+
+  public Session getCurrentSession() {
+    return sf.getCurrentSession();
+  }
+}
+\end{javacode}
+
+注意：这是Spring与Hibernate结合时的标准实现方式：\\
+Spring -> ORM -> Hibernate
+
+\section[Log4j]{Log4j}
+在Spring中使用log4j进行log输出。
+
+\subsection[启动log4j]{启动log4j}
+在web.xml中增加listener，这样wervlet启动时自动启动log4j。
+
+\begin{xmlcode}
+<!-- log4j configuration -->
+<context-param> 
+  <param-name> log4jConfigLocation</param-name> 
+  <param-value>/WEB-INF/properties/log4j.properties</param-value> 
+</context-param> 
+<context-param> 
+  <param-name> log4jRefreshInterval</param-name> 
+  <!-- 每隔60s重新加载一次property文件 -->
+  <param-value>60000</param-value> 
+</context-param>
+
+<listener> 
+  <listener-class> 
+    org.springframework.web.util.Log4jConfigListener 
+  </listener-class> 
+</listener>
+\end{xmlcode}
+
+\subsection[配置log4j]{配置log4j}
+配置log4j。
+
+\begin{bashcode}
+# /WEB-INF/properties/log4j.properties
+
+#### 定义格式: log4j.rootLogger = [ level ] , appenderName, appenderName, ...
+# level: 依次为 debug, info, warn, error, fatal
+# appenderName: 自定义的输出方式
+# 下面的 console, R为两个自定义输出方式
+log4j.rootLogger = INFO, console, R
+
+#### 定义 console 的信息
+# console 的执行类
+log4j.appender.console = org.apache.log4j.ConsoleAppender
+# 设置layout，有四种可选格式：
+#org.apache.log4j.HTMLLayout
+#org.apache.log4j.PatternLayout
+#org.apache.log4j.SimpleLayout
+#org.apache.log4j.TTCCLayout
+log4j.appender.console.layout = org.apache.log4j.PatternLayout
+# 设置输出log的格式
+log4j.appender.console.layout.ConversionPattern =
+                              %-d{yyyy-MM-dd HH:mm:ss} [%c]-[%p] %m%n
+
+#### 定义 R 的信息
+# 设置 R 将log输出到文件
+log4j.appender.R = org.apache.log4j.RollingFileAppender
+# 设置log文件路径，相对于tomcat的根目录
+log4j.appender.R.File = logs/log4j.txt
+# 设置log文件大小
+log4j.appender.R.MaxFileSize = 4MB
+# 当log文件达到上限时，将其重命名为xxx.1，xxx.2，直到xxx.MaxBackupIndex为止
+log4j.appender.R.MaxBackupIndex = 10
+log4j.appender.R.layout = org.apache.log4j.PatternLayout
+log4j.appender.R.layout.ConversionPattern =
+                        %-d{yyyy-MM-dd HH:mm:ss} [%c]-[%p] - %m%n
+
+#### conversion pattern
+# %c : class，日志信息所属类的全称
+# %d : date，可以通过"%-d{}"的形式自定义时间
+# %f : file，日志所属的文件名称
+# %l : line，日志所在的行数
+# %m : message，也就是具体的log内容
+# %n : newline，根据平台自定适应
+# %p : priority，优先级字符串
+# %r : runtime，应用启动至日志输出的时长，单位毫秒
+# %t : thread，日志所在的线程名称
+
+#### 代码中的使用方法
+# import org.apache.log4j.Logger
+# private static Logger logger = Logger.getLogger(<ClassName>.class);
+# logger.info("This is the log message");
+\end{bashcode}
+
+\subsection[使用log4j]{使用log4j}
+在Java代码中使用log4j。
+
+\begin{javacode}
+import org.apache.log4j.Logger
+private static Logger logger = Logger.getLogger(<ClassName>.class);
+logger.info("This is the log message");
+\end{javacode}
+
+
+\section[使用Maven创建all-in-one jar文件]{使用Maven创建all-in-one jar文件}
+all-in-one jar文件就是将所有依赖的jar文件以及“配置文件”全都打包进一个jar文件。
+创建Spring的all-in-one jar文件时使用maven-shade-plugin，具体做法是在pom.xml中
+添加该插件，
+
+\begin{xmlcode}
+<plugin>
+  <groupId>org.apache.maven.plugins</groupId>
+  <artifactId>maven-shade-plugin</artifactId>
+  <version>2.2</version>
+  <executions>
+    <execution>
+      <phase>package</phase>
+      <goals>
+        <goal>shade</goal>
+      </goals>
+      <configuration>
+        <transformers>
+          <!-- 操作MANIFEST.MF文件 -->
+          <transformer
+            implementation="org.apache.maven.plugins.shade.resource
+                                            .ManifestResourceTransformer">
+            <mainClass>com.example.service.App</mainClass>
+          </transformer>
+          <!-- 将每个jar包下的META-INF/spring.schemas文件合并到一起
+               并放置到all-in-one jar文件的META-INF/spring.schemas文件中-->
+          <transformer
+            implementation="org.apache.maven.plugins.shade.resource
+                                            .AppendingTransformer">
+            <resource>META-INF/spring.schemas</resource>
+          </transformer>
+          <!-- 同spring.schemas文件类似 -->
+          <transformer
+            implementation="org.apache.maven.plugins.shade.resource
+                                            .AppendingTransformer">
+            <resource>META-INF/spring.handlers</resource>
+          </transformer>
+          <!-- 同spring.schemas文件类似 -->
+          <transformer
+            implementation="org.apache.maven.plugins.shade.resource
+                                            .AppendingTransformer">
+            <resource>META-INF/spring.tooling</resource>
+          </transformer>
+        </transformers>
+      </configuration>
+    </execution>
+  </executions>
+</plugin>
+\end{xmlcode}
+
+如果没有对META-INF/spring.schemas、spring.handlers文件的处理，运行时就会
+找不到namespace的handler。
+
+
+\part[Aspect Oriented Programming]{Aspect Oriented Programming}
+Aspect Oriented Programming(AOP)，面向方面编程，是OOP的补充和完善。它并非要取代OOP，
+AOP是一种寄生式编程方式，它的存在的目的是为了“增强”OOP。
+
+AOP的本质是Proxy pattern。AOP的作用就是选出业务对象中的某些方法，然后在这些
+方法执行前、后、返回、异常时添加“动作”（函数，可以理解为回调函数）。
+
+
+\section[术语]{术语}
+代理模式(proxy pattern)中的概念：
+
+\begin{description}
+\item [target: ] 业务对象，也就是被代理的对象，真正的业务逻辑在此实现
+\item [proxy: ] 代理对象，实际使用的对象
+\end{description}
+
+AOP中的概念：
+
+\begin{description}
+\item [joinpoint: ] 抽象概念，可以理解为业务对象中被增强的方法，一般为advice方法接受的参数
+\item [pointcut: ] 业务对象方法(joinpoint)的选择器，AOP就是要“增强”被pointcut选出来的方法
+\item [advice: ] 对pointcut选出来的方法执行的动作，如这些方法执行前、后、返回、异常时执行的动作
+\item [aspect: ] pointcut和advice组成的类
+\end{description}
+
+AOP的主要advice类型：
+
+\begin{description}
+\item [before advice: ] 在pointcut之前执行
+\item [after returning advice: ] 在pointcut return之后执行
+\item [after throwing advice: ] 在pointcut抛出异常时执行
+\item [around advice: ] 上述advice的综合，可以灵活的自定义需要哪些advice
+\end{description}
+
+\section[Proxy机制]{Proxy机制}
+由于AOP本质上是proxy pattern，所以我们首先介绍一下proxy pattern。
+
+\subsection[proxy模式]{proxy模式}
+我们通过一个ITalk接口、一个ITalk实现、一个ITalk代理来演示。
+
+首先定义一个ITalk接口，
+
+\begin{javacode}
+public interface ITalk {
+  public void talk(String message);
+}
+\end{javacode}
+
+然后是一个具体的实现，
+
+\begin{javacode}
+public class TalkImpl implements ITalk {
+  public String name;
+  public int age;
+
+  public TalkImpl(String name, int age) {
+    this.name = name;
+    this.age = age;
+  }
+
+  @Override
+  public void talk(String message) {
+    System.out.println("name: " + name + ", age: " + age + ", say: " + message);
+  }
+}
+\end{javacode}
+
+接下来是代理类，
+
+\begin{javacode}
+public class TalkProxy implements ITalk {
+  private ITalk talker;
+
+  public TalkProxy(ITalk talker) {
+    this.talker = talker;
+  }
+
+  @Override
+  public void talk(String message) {
+    talk.talk(message);
+  }
+
+  // let sing a song.
+  public void talk(String message, String song) {
+    talker.talk(message);
+    sing(song);
+  }
+
+  private void sing(String song) {
+    System.out.println("sing a song: " + song);
+  }
+}
+\end{javacode}
+
+这就是AOP的原理：
+\begin{itemize}
+\item talk()方法视为pointcut
+\item sing()方法视为advice
+\item sing()等其他“增强”方法(如果有的话)的集合视为aspect
+\end{itemize}
+
+代理模式有两个缺点：
+\begin{itemize}
+\item 必须定义接口
+\item 不同的业务类需要定义不同的代理类，注意是类而不是对象
+\end{itemize}
+
+\subsection[使用JDK动态代理]{使用JDK动态代理}
+为了弥补“不同业务类需要不同代理类”的缺点，我们使用JDK动态代理机制，
+它利用反射机制，代理类只需实现InvocationHandler接口即可。
+
+动态代理类定义：
+
+\begin{javacode}
+public class DynamicProxy implements InvocationHandler {
+  // 目标对象
+  private Object target;
+
+  // 绑定目标对象
+  public Object bind(Object target) {
+    this.target = target;
+    return Proxy.newProxyInstance(
+           target.getClass().getClassLoader(),
+           target.getClass().getInterfaces(), // 这里使用到接口了
+           this);
+  }
+
+  @Override
+  pbulic Object invoke(Object proxy, Method method, Object[] args)
+                throws Throwable {
+    Object result = null;
+    // pointcut之前执行
+    System.out.println("before pointcut...");
+    // pointcut执行
+    result = method.invoke(target, args);
+    // pointcut之后执行
+    System.out.println("after pointcut...");
+
+    return result;
+  }
+}
+\end{javacode}
+
+不同的业务类都可以使用这个代理对象，只需bind一下即可，当然，
+实际使用中invoke方法会比较复杂，因为我们在这里“增强”业务方法，
+即pointcut。
+
+它的确定也很明显：仍然需要定义接口。
+
+\subsection[使用cglib代理]{使用cglib代理}
+接下来我们使用cglib进行代理，它采用的继承机制，其原理是对指定的目标类生成一个子类，
+并覆盖其中的方法，实现“增强”。它既不需要定义接口，也不需要为不同业务类创建不同
+代理类。
+
+cglib代理类定义：
+
+\begin{javacode}
+public class CGlibProxy implements MethodInterceptor {
+  private Object target;
+
+  // 创建代理对象
+  public Object getInstance(Object target) {
+    this.target = target;
+    
+    Enhancer enhancer = new Enhancer();
+    enhancer.setSuperclass(this.target.getClass());
+    enhancer.setCallback(this);
+    //返回代理对象
+    return enhancer.create();
+  }
+
+  // 调用代理对象的方法时会回调到intercept()方法
+  @Override
+  public Object intercept(
+         Object proxy, // 代理对象，也就是业务对象的子类对象
+         Method method,
+         Object[] args,
+         MethodProxy methodProxy) throws Throws {
+    Object result = null;
+    System.out.println("before pointcut...");
+    result = methodProxy.invokeSuper(proxy, args);
+    System.out.println("after pointcut...");
+
+    return result;
+  }
+}
+\end{javacode}
+
+Spring AOP就是利用JDK动态代理和CGlib代理实现的。
+
+\section[在Spring中使用AOP]{在Spring中使用AOP}
+接下来我们看看，如何在Spring中使用AOP，我们以
+before advice和around advice为例。
+
+\subsection[使用继承方式]{使用继承方式}
+通过继承的方式虽然繁琐，但是流程更加清晰。
+
+业务类：
+
+\begin{javacode}
+package com.example.aop;
+
+public class BookService {
+  public void borrowBook() {
+    System.out.println("get book...");
+  }
+
+  public void returnBook() {
+    System.out.println("return book...");
+  }
+
+  public void washBook() {
+    throw new RuntimeException("the book can not be washed.");
+  }
+}
+\end{javacode}
+
+before advice:
+
+\begin{javacode}
+package com.example.aop;
+import org.springframework.aop.MethodBeforeAdvice;
+
+public class BeforeAdvice implements MethodBeforeAdvice {
+  @Override
+  public void before(Method method, Object[] args, Object target)
+                     throws Throwable {
+    System.out.println("before advice...");
+  }
+}
+\end{javacode}
+
+around advice:
+
+\begin{javacode}
+package com.example.aop;
+
+import org.aopalliance.intercept.MethodInterceptor;
+import org.aopalliance.intercept.MethodInvocation;
+
+public class AroundAdvice implements MethodInterceptor {
+  @Override
+  public Object invoke(MethodInvocation invocation) throws Throwable {
+    // before advice
+    System.out.println("around advice, before");
+    try {
+      // pointcut
+      Object result = invocation.processd();
+      // after pointcut
+      System.out.println("around advice, after");
+      
+      return result;
+    } catch (RuntimeException e) {
+      System.out.println("around advice, exception");
+      throw e;
+    }
+  }
+}
+\end{javacode}
+
+pointcut:
+
+\begin{javacode}
+package com.example.aop;
+
+// pointcut对象并非指的是业务对象方法实体，它的作用只是
+// 选出那些方法来。
+public class Pointcut extends NameMatchMethodPointcut {
+  public boolean matches(Method method, Class targetClass) {
+    // 设置单个方法匹配
+    this.setMappedName("borrowBook");
+
+    // 使用正则表达式匹配
+    // this.setMappedName("borrow*");
+
+    // 设置多个方法匹配
+    // String[] methodNames = { "borrowBook", "returnBook" };
+    // this.setMappedNames(methodNames);
+  }
+}
+\end{javacode}
+
+xml配置文件：
+
+\begin{xmlcode}
+<beans>
+  <!-- 创建业务对象 -->
+  <bean id="bookService" class="com.example.aop.Bookservice" />
+
+  <!-- 创建before advice对象 -->
+  <bean id="beforeAdvice" class="com.example.aop.Beforeadvice" />
+  <!-- 创建around advice对象 -->
+  <bean id="aroundAdvice" class="com.example.aop.Aroundadvice" />
+
+  <!-- 创建pointcut对象 -->
+  <bean id="borrowBookPointcut" class="com.example.aop.Pointcut" />
+  <!-- 创建pointcut advisor对象，
+       advisor的作用就是“给某些pointcut配备某些advise” -->
+  <bean id="aroundBorrowBookPointcutAdvisor"
+        class="org.springframework.aop.support.DefaultPointcutAdvisor" >
+    <property name="pointcut">
+      <ref bean="borrowBookPointcut" />
+    </property>
+    <property name="advise">
+      <ref bean="aroundAdvice" />
+    </property>
+  </bean>
+    
+  <!-- 创建代理对象 -->  
+  <bean id="bookServiceProxy"
+        class="org.springframework.aop.framework.ProxyFactoryBean">
+    <property name="target" ref="bookService" />
+    <property name="interceptorNames">
+      <list>
+        <!-- 业务对象的每个方法(pointcut)均配备before advise -->
+        <value>beforeAdvice</value>
+        <!-- <value>aroundAdvice</value> -->
+        <!-- 这里不直接使用around advise，而是使用一个advisor -->
+        <value>aroundBorrowBookPointcutAdvisor</value>
+      </list>
+    </property>
+  </bean>
+</beans>
+\end{xmlcode}
+
+使用的时候，直接使用bookServiceProxy对象即可！
+
+\subsection[使用Aspect类]{使用Aspect类}
+业务类：
+
+\begin{javacode}
+package com.example.aop;
+
+public class BookService {
+  public void borrowBook() {
+    System.out.println("get book...");
+  }
+
+  public void returnBook() {
+    System.out.println("return book...");
+  }
+
+  public void washBook() {
+    throw new RuntimeException("the book can not be washed.");
+  }
+}
+\end{javacode}
+
+aspect类：
+
+\begin{javacode}
+package com.example.aop;
+
+public class MyAspect {
+  public void doBefore(JoinPoint jp) {
+    System.out.println("该动作将在"
+               + jp.getSignature().getName() 
+               + "之前执行");
+
+  public void doAfter(JoinPoint jp, String result) {}
+
+  public void doAround(ProceedingJoinPoint pjp) throw Throwable {
+    // around before
+    System.out.println("around before...");
+    // execute pointcut
+    Object result = pjp.proceed();
+    // around after
+    System.out.println("around after...");
+  }
+
+  public void doThrow(JoinPoint jp, Throwable e) {}
+\end{javacode}
+
+xml配置文件：
+
+\begin{xmlcode}
+<beans>
+  <bean id="bookService" class="com.example.aop.Bookservice" />
+
+  <aop:config>
+    <aop:aspect id="myAspect" ref="bookservice">
+      <aop:pointcut id="bookServicePointcut"
+                    expression="execution(* com.example.aop.BookService.*(..))" />
+      <aop:before pointcut-ref="bookServicePointcut" method="doBefore" />
+      <aop:after pointcut-ref="bookServicePointcut" method="doAfter" />
+      <aop:around pointcut-ref="bookServicePointcut" method="doAround" />
+      <aop:after-throwing pointcut-ref="bookServicePointcut" method="doThrow"
+                          throwing="e" />
+    </aop:aspect>
+  </aop:config>
+</beans>
+\end{xmlcode}
+
+
+
+\subsection[使用注解]{利用注解}
+实际使用中都是利用AspectJ注解，简洁明了。
+
+业务类：
+
+\begin{javacode}
+package com.example.aop;
+
+// @Component创建bean对象，不用在xml中配置了
+@Component
+public class BookService {
+  public void borrowBook() {
+    System.out.println("get book...");
+  }
+
+  public void returnBook() {
+    System.out.println("return book...");
+  }
+
+  public void washBook() {
+    throw new RuntimeException("the book can not be washed.");
+  }
+}
+\end{javacode}
+
+aspect类：
+
+\begin{javacode}
+package com.example.aop;
+
+// 直接生成bean对象，并且是aspect类型的对象
+@Component
+@Aspect
+public class MyAspect {
+  // value表示pointcut，它会选出需要增强的函数，这里表示在
+  // BookService的任何方法上执行
+  @Before(value="execution(* com.example.aop.BookService.*(..))")
+  public void doBefore(JoinPoint jp) {
+    System.out.println("该动作将在"
+               + jp.getSignature().getName() 
+               + "之前执行");
+
+  @AfterReturning(value="execution(* com.example.aop.BookService.*(..))")
+  public void doAfter(JoinPoint jp, String result) {}
+
+  @Around(value="execution(* com.example.aop.BookService.*(..))")
+  public void doAround(ProceedingJoinPoint pjp) throw Throwable {
+    // around before
+    System.out.println("around before...");
+    // execute pointcut
+    Object result = pjp.proceed();
+    // around after
+    System.out.println("around after...");
+  }
+
+  @AfterThrowing(value="execution(* com.example.aop.BookService.*(..))",
+                        throwing="e")
+  public void doThrow(JoinPoint jp, Throwable e) {}
+\end{javacode}
+
+xml配置文件：
+
+\begin{xmlcode}
+<beans>
+  <context:component-scan base-package="com.example.aop" />
+  <aop:aspectj-autoproxy />
+</beans>
+\end{xmlcode}
+
+
+
+\section[使用AOP进行事务管理]{使用AOP进行事务管理}
+事务管理是Spring AOP的重要应用之一。
+
+\subsection[tx命名空间]{tx命名空间}
+\subsection[实例]{实例}
+
+
+\section[JDK dynamic proxy]{JDK dynamic proxy}
+
+\section[CGlib]{CGlib}
+
+
+
+
+
+
+\part[Hibernate]{Hibernate}
+
+\end{document}

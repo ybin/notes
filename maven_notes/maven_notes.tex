@@ -89,6 +89,9 @@ describe就是显示plugin的说明信息以及它的goal列表。
   mvn help:describe -DgroupId=<xx> -DartifactId=<yy> [-Dversion=<zz>]
 \end{bashcode}
 
+version默认使用最新的版本，可以使用-o选项进入离线模式来阻止Maven下载（
+比如本地仓库已经有一个低版本）。
+
 或者用更简单的形式，
 
 \begin{bashcode}
