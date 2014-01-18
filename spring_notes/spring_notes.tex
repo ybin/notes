@@ -1074,7 +1074,177 @@ xml配置文件：
 
 
 
+\part[Spring Annotations]{Spring Annotations}
+尽可能全面的总结Spring的annotations。
 
+\section[Java Annotation]{Java Annotation}
+如何编写Java Annotation。
+
+Java Annotations位于JDK的rt.jar中的java.lang.annotation包中，包括，
+\begin{enumerate}
+\item Documented
+\item Inherited
+\item Retention
+\item Target
+\end{enumerate}
+
+\section[AOP Annotations]{AOP Annotations}
+Spring使用AspectJ的AOP annotations，这些annotations定义位于
+aspectjweaver.jar中，所处的package为：org.aspectj.lang.annotation，
+包括如下annotation，
+\begin{enumerate}
+\item AdviceName
+\item After
+\item AfterReturning
+\item AfterThrowing
+\item Around
+\item Aspect
+\item Before
+\item DeclareAnnotation
+\item DeclareError
+\item DeclareMixin
+\item DeclareParents
+\item DeclarePrecedence
+\item DeclareWarning
+\item Pointcut
+\item SuppressAjWarnings
+\end{enumerate}
+
+\section[Stereotype Annotations]{Stereotype Annotations}
+stereotype annotations是Spring的标准annotations，它们用于创建beans，位于
+spring-context模块的org.springframework.stereotype包中，包括，
+\begin{enumerate}
+\item Component
+\item Controller
+\item Service
+\item Repository
+\end{enumerate}
+其中，@Component会创建通用性bean，而@Controller、@Service、@Repository
+分别创建针对表现层、业务层、持久化层的bean。
+
+\section[Dependency Injection Annotations]{Dependency Injection Annotations}
+这部分annotation用于beans的自动插入，它们位于spring-beans模块的
+org.springframework.beans.factory.annotation包中，包括，
+\begin{enumerate}
+\item Autowired
+\item Configurable
+\item Qualifier
+\item Required
+\item Value
+\end{enumerate}
+
+\section[MVC Annotations]{MVC Annotations}
+Spring MVC方面的annotations位于spring-web模块的
+org.springframework.web.bind.annotation包中，包括，
+\begin{enumerate}
+\item ControllerAdvice
+\item CookieValue
+\item ExceptionHandler
+\item InitBinder
+\item Mapping
+\item MatrixVariable
+\item ModelAttribute
+\item PathVariable
+\item RequestBody
+\item RequestHeader
+\item RequestMapping
+\item RequestParam
+\item RequestPart
+\item ResponseBody
+\item ResponseStatus
+\item RestController
+\item SessionAttributes
+\end{enumerate}
+
+\section[Spring Context Annotation]{Spring Context Annotation}
+这部分注解的作用是什么呢？这个包里的内容很有意思！！！
+它们位于spring-context模块的org.springframework.context.annotation包中，
+包括，
+\begin{enumerate}
+\item Bean
+\item ComponentScan
+\item Conditional
+\item Configuration
+\item DependsOn
+\item Description
+\item EnableAspectJAutoProxy
+\item EnableLoadTimeWeaving
+\item EnableMBeanExport
+\item Import
+\item ImportResource
+\item Lazy
+\item Primary
+\item Profile
+\item PropertySource
+\item PropertySources
+\item Role
+\item Scope
+\end{enumerate}
+
+\section[javax annotation]{javax annotation}
+另外还有javax里的annotation，它们位于JDK的rt.jar的javax.annotation包中，
+Spring似乎对部分注解做了不同的解析，所有这方面的annotations包括，
+\begin{enumerate}
+\item Generated
+\item PostConstruct
+\item PreDestroy
+\item Resource
+\item Resources
+\end{enumerate}
+
+\section[如何使用annotation]{如何使用annotation}
+annotation只不过是一些“标识”，一些marker罢了，真正让这些标识起作用的
+是隐藏在背后的“解析器”。
+
+\subsection[使用注解创建bean]{使用注解声明bean}
+四个用于声明bean的注解，它们用法类似，都表示声明一个bean。
+\begin{description}
+\item [@Component: ] 表示一个通用性的bean，可用于任何层次
+\item [@Repository: ] 用于持久化层
+\item [@Service: ] 用于业务层
+\item [@Controller: ] 用于表现层
+\end{description}
+要想让这些注解起作用，必须要注册相应的扫描器来识别它们，
+
+\begin{xmlcode}
+<context:component-scan base-package="your.base.package" />
+\end{xmlcode}
+
+这样，在读取到这些注解时，Spring调用相关的扫描器创建BeanDefinition对象
+并注册到ApplicationContext中。然后这些生成的bean叫什么名字呢？它们的名字
+会根据其扫描器的BeanNameGenerator策略生成，默认情况下，如果这些注解提供
+name属性时，生成的bean就是name属性的值，否则就是用小写开头的非限定类名
+(非限定类名，即为不包括报名的类名)，当然也可以自定义命名策略，只需实现
+BeanNameGenerator接口即可，
+
+\begin{xmlcode}
+<context:component-scan
+  base-package="com.example"
+  name-generator="com.example.MyBeanNameGenerator" />
+\end{xmlcode}
+
+另外，上述注解并没有作用域的属性，他们的默认作用域为singleton，可以使用
+@Scope注解修改其作用域，
+
+\begin{javacode}
+  @Scope("prototype")
+  @Repository
+  public class MyBean { }
+\end{javacode}
+
+\subsection[使用注解进行Bean的依赖检查]{使用注解进行Bean的依赖检查}
+使用@Required判断给定bean的setter方法在实例化时是否被调用了，某人为true，
+如果setter方法没有被调用，Spring在解析时会抛出异常，该注解需要激活
+org.springframework.beans.factory.annotation.RequiredAnnotationBeanPostProcessor
+后处理器，所以需要对annotation进行配置，
+
+\begin{xmlcode}
+  <context:annotation-config />
+\end{xmlcode}
+
+\subsection[使用注解注入bean]{使用注解注入bean}
+
+\subsection[使用Configuration和Bean注解声明Bean]{使用Configuration和Bean注解声明Bean}
 
 
 \part[Hibernate]{Hibernate}
