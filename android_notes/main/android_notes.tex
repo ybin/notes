@@ -20,6 +20,47 @@
   \setcounter{page}{1}
 
   \part[Commands for Android]{Android命令行工具}
+  \section[logcat - Log dumper for Android] {logcat命令}
+  \subsection[filter tag name]{过滤tag}
+  使用方法：adb logcat -s \lt TAG-NAME1\gt \lt TAG-NAME2\gt
+
+  \subsection[filter by priority]{按照等级过滤}
+  使用方法：adb logcat "TAG:PRIORITY"\\
+  或者\\
+  adb logcat "*:PRIORITY"
+
+  \subsection[filter by tag and priority]{结合tag和priority}
+  使用方法：\\
+  adb logcat -s TAG-NAME1:PRIORITY TAG-NAME2:PRIORITY
+
+  例如：\\
+  adb logcat -s camera:E ybsolar:I
+
+  priority包括：\\
+  V: verbose\\
+  D: debug\\
+  I: info\\
+  W: warning\\
+  E: error\\
+  F: fatal\\
+  S: silent
+
+  \subsection[use grep]{搭配grep}
+  使用方法：\\
+  adb logcat | grep "key1\bs|key2"
+
+  例如：\\
+  adb logcat | grep "Exception\bs|Error"\\
+  同时搜索Exception或者Error的log。
+
+  \subsection[clear buffer]{清空缓存}
+  使用方法：\\
+  adb logcat -c\\
+  清空缓存，即清空旧的日志数据。
+
+  \section[screencap]{screencap命令}
+  使用方法：adb shell screencap -p | perl -pe 's/\bs x0D\bs x0A/\bs x0A/g' > screen.png
+  
   \section[aapt - Android Asset Packaging Tool]{aapt命令}
   使用方法: aapt \textless subcommand\textgreater\ \lt options\gt
   \subsection[print apk file badging information]{打印apk文件概要信息}
