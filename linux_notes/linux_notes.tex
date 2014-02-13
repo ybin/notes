@@ -478,4 +478,37 @@
   \end{bashcode}
 
 
+  \section[查看linux进程信息]{查看linux进程信息}
+  关于linux的进程与线程，一句话总结：\\
+  在kernel(尤其是driver)看来，没有线程只有进程，每个进程都有一个唯一的
+  pid，但是多个进程可能有同样的tgid(thread group id)；
+  在user space看来，进程和线程是有区别的，系统调用getpid()取得的是进程
+  的tgid，所以线程的pid(其实是tgid)是相同的。
+
+  ps命令默认只根据tgid进行输出，要查看所有线程的信息，可以使用参数：\\
+  ps -eLf\\
+  LWP字段即为线程id。用户空间看到的pid其实是tgid，lwp字段其实是pid的值。\\[10pt]
+
+  通过/proc查看进程信息。一个进程的所有信息都保存在/proc/<pid>/目录下面，
+  下面介绍各个文件/目录中记录的信息。
+
+  status: 进程的概略信息，包括进程的name, state(e.g. sleeping), tgid, pid, ppid,
+  uid, gid, 所属的groups, threads数目等等。
+
+  maps: 进程虚拟地址空间(4G空间)详情，该文件有如下几个字段：虚拟地址范围、
+  权限(rwxsp, s=share, p=private)、文件偏移量(如果一个文件被映射到多个虚拟地址
+  范围，第一个偏移量为0，第二个偏移量为第一个范围的大小，依次类推)、
+  设备号(x:y，主次设备)、inode值。
+
+  task/: 该目录中记录了所有线程信息，一个线程一个目录，以线程id作为目录名称。其中
+  的内容跟进程差不多，比较线程跟进程共享了太多的内容。
+
+  environ: 该文件记录了environment信息，如PATH，EXTERNAL\_STORAGE等。
+
+  smaps: 类似maps文件，但是信息更加详细。
+
+  fd/: 该目录下记录了进程打开的所有文件/设备，该目录下均为link，以文件描述符号命名，
+  通过ls -l可以看到每个fd关联到那个文件/设备，如：9 -> /dev/binder、
+  13 -> /system/framework/framework.jar等。
+
 \end{document}

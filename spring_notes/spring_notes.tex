@@ -1246,6 +1246,11 @@ org.springframework.beans.factory.annotation.RequiredAnnotationBeanPostProcessor
 
 \subsection[使用Configuration和Bean注解声明Bean]{使用Configuration和Bean注解声明Bean}
 
+\section[字符串转码]{字符串转码}
+\begin{javacode}
+  String gbkString = "字符串编解码是很烦人的事情！";
+  String utf8String = new String(gbkString.getBytes("GBK"), "UTF-8");
+\end{javacode}
 
 \part[Hibernate]{Hibernate}
 
