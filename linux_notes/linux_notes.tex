@@ -127,6 +127,25 @@
   pattern使用正则表达式：
   \cmd{grep "return .*;" file.c file.h}
 
+  \subsection[正则表达式：与]{正则表达式：与}
+  “与”是非常triky的方式：
+
+  grep -E pattern1 filename | grep -E pattern2 filename
+  
+  \subsection[正则表达式：或]{正则表达式：或}
+  “或”有多种表达方式。注意“\bs|”、“|”两边不要有空格哦！
+
+  \begin{itemize}
+  \item grep 'pattern1\bs |pattern2' filename
+  \item grep -E 'pattern1|pattern2' filename
+  \item grep -e pattern1 -e pattern2 filename
+  \end{itemize}
+  
+  \subsection[正则表达式：非]{正则表达式：非}
+  这个“非”方法使用-v选项，不太美观，肯定有更好的。
+
+  grep -E 'pattern1 | pattern2' filename | grep -v 'pattern3'
+
   \subsection[使用通配符]{使用通配符}
   file list可以使用通配符，如在当前目录(不包括子目录)中搜索字符串：
   \cmd{grep "return" *}
@@ -142,6 +161,8 @@
     \item -l, --files-with-matches: 只列出包含pattern的文件名
     \item -c, --count: 显示pattern在文件中的匹配数量
   \end{coloredenumerate}
+
+
 
   \subsection[综合起来]{综合起来}
   在当前目录下，递归搜索所有文件，查找字符串：
@@ -510,5 +531,23 @@
   fd/: 该目录下记录了进程打开的所有文件/设备，该目录下均为link，以文件描述符号命名，
   通过ls -l可以看到每个fd关联到那个文件/设备，如：9 -> /dev/binder、
   13 -> /system/framework/framework.jar等。
+  
+  \vspace{5pt}
+
+  实例：
+  在android中查看zte.com.cn.camera这个进程的threads信息：
+
+  find task -type f -name status | xargs grep "\^Name\bs|\^Pid"
+
+  注意，我们已经将camera进程的/proc数据复制到电脑上了。然后对比eclipse中
+  camera进程的threads信息，是不是一样的呢！
+
+  另外，从结果中的“Binder\_1”、“Binder\_2”线程名称可知，每个Binder是单独
+  启动一个线程的(在IPCThreadState::self()->IPCThreadState()
+
+  debugfs的挂载点(mount point)为/sys/kernel/debug/，例如binder的debugfs
+  信息就可以在/sys/kernel/debug/binder/目录中找到。
+
+  
 
 \end{document}

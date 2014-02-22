@@ -1,0 +1,235 @@
+﻿
+\documentclass[a4paper,11pt]{article}
+
+\input{../../styles/article_preamble}
+\input{../../styles/tikz_preamble}
+
+\sybtitle{Android中的智能指针}
+\sybauthor{孙延宾}
+\sybdate{\today}
+
+\begin{document}
+\tt % I love Typewriter font.
+%%%%%%%% the title page and toc %%%%%%%%%%
+\pagestyle{header}
+\sybmaketitle
+\tableofcontents
+\newpage
+
+%%%%%%% the main content %%%%%%%%%
+\pagestyle{main}
+\setcounter{page}{1}
+
+\section[一般的智能指针]{一般的智能指针}
+智能指针的概念在C++的世界中比较常见，它的出现是为了解决两个经典问题：
+\begin{itemize}
+\item object生命周期结束后如何自动释放其占有的内存？
+\item 如何避免出现野指针？
+\end{itemize}
+第一个问题处理不好就会出现内存泄露，而第二个问题就是空指针，两个都是非常严重的
+问题。
+
+智能指针的概念就是为了解决这两个问题而提出的，它的思路是为对象创建一个管理器，
+这个管理器也是一个对象(叫做影子对象)，通过指针关联到我们真正在意的对象(就叫做
+本体吧)，我们不直接操作本体而是操作影子对象，这是通过在影子对象中重载“.”和
+“->”两个操作实现的，也就是我们调用影子对象的方法时，实际调用的是本体中的方法，
+由此可见，我们是无法通过影子对象访问本体中的属性的。
+影子对象中保有一个计数器，记录它被引用的次数(注意是影子
+对象被引用的次数，因为我们操作影子对象，即使我们的本意是引用本体)，每次增加
+引用时计数加一，引用完毕之后计数减一，等到计数为零时，影子对象将本体和自己
+一并释放，引用者无需额外操作。
+
+那么，智能指针具体是如何解决上述两大问题的呢？
+
+1. 影子对象是于stack上的，所以其生命周期结束后会自动释放（见CPP notes的相关章节），
+我们只需在其析构函数中减少影子对象的计数器即可，等计数器减到零时，影子对象自会
+释放本体和它自身所占用的内存，第一个问题完美解决了。
+
+2. 由于我们只跟影子对象打交道，所以只要影子对象中的计数不出错，本体是不会被意外
+销毁的，也就不会出现野指针了，第二个问题完美解决了。
+
+\section[Android中的智能指针]{Android中的智能指针}
+使用智能指针是否就万事大吉了呢，很可惜，不能！现实世界中还有一类programmer经常
+会犯的错误：循环引用，而智能指针无法解决此类问题，Android中为此修改了智能指针
+的实现，变为强弱指针，不过这仍然不能完全解决循环引用的问题：强指针与强指针相互
+引用时Android也无能为力了，这是需要programmer需要关注的。
+
+\section[数据结构]{数据结构}
+基类，所有使用智能指针的类必须继承该基类。
+
+\begin{cppcode}
+// base class of interface: RefBase
+class RefBase {
+// data
+private:
+    weakref_impl* const mRefs;
+
+// method
+public:
+    // strong pointer operations
+    void incStrong();
+    void decStrong();
+    void forceIncStrong();
+
+    // operations for weak pointer
+    weakref_type* createWeak();
+    weakref_type* getWeakRefs();
+
+    // change lifetime controller, strong or weak
+    void extendObjectLifetime(int32_t mode);
+
+    // interface for subclass
+    void onFirstRef();
+    void onLastStrongRef();
+    void onLastWeakRef();
+    void onIncStrongAttempted(uint32_t flags, void* id);
+}
+\end{cppcode}
+
+每个基类对象都有一个计数器对象，负责记录引用计数。
+
+\begin{cppcode}
+// 计数器对象: weakref_imple
+class RefBase::weakref_impl : public RefBase::weakref_type {
+// data
+public:
+    int32_t mStrong; // 强引用计数
+    int32_t mWeak;   // 弱引用计数
+    RefBase* mBase;  // 本体对象
+    int32_t mFlags;  // 生命周期标志
+
+// methods
+    RefBase* refBase();  // 获取本体对象
+    void incWeak();
+    void decWeak();
+    bool attemptIncStrong();
+    bool attemptIncWeak();
+}
+\end{cppcode}
+
+强指针类，只有一个本体对象的指针，在构造函数中增加引用计数，
+在析构函数中减少引用计数。
+
+\begin{cppcode}
+// strong pointer class: sp
+template <typename T>
+class sp {
+// data
+private:
+    T* m_ptr;  // 本体对象指针
+
+// methods
+public:
+    sp();
+    ~sp();
+    T* get() { return m_ptr; }
+    void clear();  // 修改引用计数
+}
+\end{cppcode}
+
+弱指针类，构造函数、析构函数中只增、减弱引用计数，
+弱指针不能直接调用本体对象，必须提升为强指针才行。
+
+\begin{cppcode}
+// weak pointer class: wp
+template <typename T>
+class wp {
+// data
+private:
+    T* m_ptr;  // 本体对象的指针
+    weakref_type* m_refs;  // 本体计数器对象的指针
+
+// methods
+public:
+    wp();
+    ~wp();
+    weakref_type* get_refs() { return m_refs; }
+    T* unsage_get() { return m_ptr; }
+    sp<T> promote();  // 弱指针只能提升为强指针才能使用
+    void clear();  // 修改引用计数
+}
+\end{cppcode}
+
+\section[强指针对象]{强指针对象}
+操作思路：
+
+创建强指针对象时，创建本体对象，并在class sp的构造函数中增加强、弱引用计数，
+初次创建本体对象时，调用子类接口onFirstRef()。
+
+通过强指针对象调用本体对象的方法：强指针对象重载“.”和“->”操作符了。
+
+强指针对象销毁时，减少本体对象的强、弱引用计数，如果强引用计数减为0时，
+
+\begin{cppcode}
+call subclass interface: onLastStrongRef();
+if(lifetime controlled by strong ref) {
+  delete 本体对象;
+}
+\end{cppcode}
+
+弱引用计数减少到0时，
+
+\begin{cppcode}
+if(lifetime controlled by strong ref) {
+  // 此时本体对象已经被销毁了，因为强引用计数<=弱引用计数
+  delete ourself;
+} else {
+  // 证明周期有弱引用计数控制，所以强引用计数减为0时并没有销毁本体对象，
+  // 我们在此销毁它
+  call subclass interface: onLastWeakRef();
+  delete mBase;
+}
+\end{cppcode}
+
+\section[弱指针对象]{弱指针对象}
+弱指针对象跟强指针对象类似，主要区别有二：
+1. 弱指针对象创建、销毁只影响本体对象的弱引用计数，不涉及强引用计数。
+
+2. 无法通过弱指针对象操作本体对象，因为弱指针对象没有重载“.”和“->”操作符，
+只有通过弱指针对象的promote()方法拿到强指针之后才能操作本体对象，注意如果
+m\_ptr==NULL，说明本体对象一定不，那么promte()一定失败，所以就不用再尝试了；
+m\_ptr!=NULL不能确保本体对象一定就存在，还需要进行判断，判断通过attemptIncStrong()
+函数进行。
+
+下面看attemptIncStrong()函数：
+
+\begin{cppcode}
+// 正常情况
+if(0 < 强引用计数 < 初始值) {
+  增加强、弱引用计数;
+  return true; // 升级成功！
+}
+
+bool allow = false;
+
+if(强引用计数 == 初始值) {
+  // 这说明本体对象创建之后还从未被强引用过，而此时又有弱引用，考虑：
+  // wp<Interface> w = new Interface();
+  // 这样的情形，此时本体对象需要弱引用计数为0时才会释放，而当前弱引用
+  // 不为0
+  if(lifetime controlled by strong ref)
+    allow = true;
+}
+
+if(强引用计数 <= 0) {
+  // 本体对象被强引用过啊，如果生命周期由强引用计数控制就死定了
+  if(lifetime controlled by weak ref)
+    allow = true;
+}
+
+if(allow)
+  incStrong();
+if(原始强引用计数 == 初始值) {
+  android_atomic_add(-INITIAL_STRONG_VALUE, &impl->mStrong);
+  call subclass interface: onFirstRef();
+}
+
+return true;
+\end{cppcode}
+
+
+
+\section[总结]{总结}
+使用中的注意事项，如避免强强引用，何时改用强指针何时该用弱指针，
+
+\end{document}
