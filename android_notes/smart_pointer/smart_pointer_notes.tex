@@ -227,9 +227,26 @@ if(原始强引用计数 == 初始值) {
 return true;
 \end{cppcode}
 
+\section[强弱指针如何防止循环引用]{强弱指针如何防止循环引用}
+假设A、B循环引用，C是A-B系统外的引用，C引用A。A,B生命周期均为strong的。
 
+1. A, B相互强引用，C强引用A。
+
+C断开对A的引用时，此时Android无能为力，A,B均无法释放。
+
+2. A强引用B，B弱引用A，C强引用A。
+
+C断开对A的强引用时，A的strong ref为0，销毁之；这时A断开对B的强引用，
+B的strong ref又变成0了，销毁之，于是循环引用被破解。
+
+3. A弱引用B，B强引用A，C强引用A。
+
+这种情况不存在，因为此时B不存在强引用，早就销毁了。
 
 \section[总结]{总结}
-使用中的注意事项，如避免强强引用，何时改用强指针何时该用弱指针，
+使用中应注意，在可能存在循环引用的地方使用强、弱引用以防止循环引用，此时就
+应该设置从属关系，哪个主哪个仆就要看个人设计了，如binder中，client强引用
+service的对象，service则通过弱引用链接client中的death recipient，service为主，
+client为仆。
 
 \end{document}
