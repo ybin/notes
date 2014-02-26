@@ -1,0 +1,72 @@
+﻿
+\documentclass[a4paper,11pt]{article}
+
+\input{../styles/article_preamble}
+\input{../styles/tikz_preamble}
+
+\sybtitle{Source Insight Notes}
+\sybauthor{孙延宾}
+\sybdate{\today}
+
+\begin{document}
+\tt % I love Typewriter font.
+%%%%%%%% the title page and toc %%%%%%%%%%
+\pagestyle{header}
+\sybmaketitle
+\tableofcontents
+\newpage
+
+%%%%%%% the main content %%%%%%%%%
+\pagestyle{main}
+\setcounter{page}{1}
+
+\section[Source Insight内置变量]{Source Insight内置变量}
+内置变量叫做“Command Line Substitutions”，在帮助文档中有详细介绍，
+这里列举常见的几个变量。
+
+\begin{enumerate}
+\item \%f 当前文件的完整路径
+\item \%r 当前文件相对于工程源码路径的相对路径
+\item \%n 当前文件的文件名，不包括路径
+\item \%d 当前文件的路径，不包括文件名
+\item \%b 当前文件的文件名，不包括路径，不包括扩展名
+\item \%e 当前文件的扩展名
+\item \%p project name
+\item \%j source directory of the current project
+\item \%J data directory of the current project
+\item \%l the current line number
+\item \%w the word under the cursor
+\item \%a the current date
+\item \%t the current time
+\end{enumerate}
+
+\section[窗口标题栏显示完整路径]{窗口标题栏显示完整路径}
+设置窗口标题栏显示文件所在的完整路径，默认显示截取之后的路径：
+
+Options -> Preferences -> Display\\
+-> Trim long path names with ellipsis
+
+取消该选项即可。
+
+\section[在文件管理器中打开当前文件]{在文件管理器中打开当前文件}
+Options -> Custom Commands
+
+Add按钮添加命令名称，Run这一栏填“ShellExecute open explorer /select,%f”，
+Keys按钮为该命令增加新的快捷键，如“Ctrl+Alt+E”。
+
+\section[打开命令行并定位到当前目录]{打开命令行并定位到当前目录}
+定义一个新命令，打开命令行并cd到当前文件所在的目录，命令的实际执行部分，
+即Run这一栏的内容为：
+
+cmd.exe /k cd /d \%d
+
+/k 是cmd.exe的参数，表示执行其后的命令并保留执行结果\\
+/d 是cd命令的参数，表示除了改变当前目录之外，还改变当前驱动器\\
+\%d 是Source Insight的内置变量，表示当前文件所在的目录
+
+然后分配快捷键：“Ctrl+Alt+D”
+
+
+
+
+\end{document}
