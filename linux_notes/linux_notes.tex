@@ -373,7 +373,8 @@
 
   \section[统计整个目录里的文件行数]{统计整个目录里的文件行数}
   1. cat `find . -type f -print` | wc -l\\
-  2. find . -type f -print | xargs cat | wc -l
+  2. find . -type f -print | xargs cat | wc -l\\
+  3. find . -name "*.java" -or -name "*.xml" | xargs cat | wc -l
 
   \section[About Unix Pipe]{About Unix pipe}
   Unix的pipe在前后两个命令之间传递的到底是什么呢？

@@ -603,4 +603,155 @@ parcelable Book;
 D/ClientActivity(10184): book name: Android Notes, book price: 42
   \end{bashcode}
 
+\section[数据库操作]{数据库操作}
+Android上与数据库打交道时要用到Cursor类，一般是从ContentResolver中query()到一个
+Cursor对象，然后操作Cursor对象。
+
+\subsubsection[query]{query}
+通过ContentResolver的query()方法取得Cursor对象：
+
+\begin{javacode}
+Cursor c = android.content.ContentResolver.query(
+    Uri uri,
+    String[] projection,
+    String selection,
+    String[] selectionArgs,
+    String sortOrder);
+\end{javacode}
+
+参数说明：
+
+\begin{itemize}
+\item uri: 表示从哪个provider中取数据，\\如android.provider.ContactsContract.Data.CONTENT\_URI
+\item projection: 表示要取出哪些列的数据，其他列被忽略，null表示取出所有列，注意效率
+\item selection: 表示要取出哪些行的数据，\\如android.provider.ContactsContract.Contacts.DISPLAY\_NAME + "='张三'"
+\item selectionArgs: 如果selection中有问号，则按照顺序用这里的字符串替换掉问号
+\item sortOrder: 排列顺序，如android.provider.ContactsContract.Contacts.\_ID + " DESC"
+\end{itemize}
+
+\subsubsection[第一个参数示例]{第一个参数示例}
+\begin{javacode}
+Cursor cursor = contentResolver.query(
+    android.provider.ContactsContract.Contacts.CONTENT_URI,
+    null, // 取出所有列
+    null, // 取出所有行
+    null,
+    null); // 按照默认排序方式或者没有排序
+\end{javacode}
+
+\subsubsection[第二个参数示例]{第二个参数示例}
+\begin{javacode}
+Cursor cursor = contentResolver.query(
+    android.provider.ContactsContract.Contacts.CONTENT_URI,
+    // 只取出“名字”这一列
+    new String[]{ android.provider.ContactsContract.Contacts.DISPLAY_NAME },
+    null, // 取出所有行
+    null,
+    null);  
+\end{javacode}
+
+\subsubsection[第三个参数示例]{第三个参数示例}
+\begin{javacode}
+Cursor cursor = contentResolver.query(
+    android.provider.ContactsContract.Contacts.CONTENT_URI,
+    // 只取出“名字”这一列
+    new String[]{ android.provider.ContactsContract.Contacts.DISPLAY_NAME },
+    // 只取出“张三”这一行
+    android.provider.ContactsContract.Contacts.DISPLAY_NAME + "='张三'",
+    null,
+    null);
+\end{javacode}
+
+\subsubsection[第四个参数示例]{第四个参数示例}
+\begin{javacode}
+Cursor cursor = contentResolver.query(
+    android.provider.ContactsContract.Contacts.CONTENT_URI,
+    // 只取出“名字”这一列
+    new String[]{ android.provider.ContactsContract.Contacts.DISPLAY_NAME },
+    // 取哪些行还不确定，由第四个参数决定
+    android.provider.ContactsContract.Contacts.DISPLAY_NAME + "=?",
+    // “张三”这一行，也可以是：“张三,李四”，取出两行
+    new String[]{ "张三" },
+    null);  
+\end{javacode}
+
+\subsubsection[第五个参数示例]{第五个参数示例}
+\begin{javacode}
+Cursor cursor = contentResolver.query(
+    android.provider.ContactsContract.Contacts.CONTENT_URI,
+    // 只取出“名字”这一列
+    new String[]{ android.provider.ContactsContract.Contacts.DISPLAY_NAME },
+    // 取哪些行还不确定，由第四个参数决定
+    android.provider.ContactsContract.Contacts.DISPLAY_NAME + "=?",
+    // 取出“张三,李四”两行
+    new String[]{ "张三,李四" },
+    // 然后按照手机号码的降序排列
+    android.provider.ContactsContract.Contacts._ID + " DESC");  
+\end{javacode}
+
+\subsection[Cursor]{Cursor}
+理解和使用Cursor必须知道的几件事：\\
+\begin{itemize}
+\item Cursor是一个“行”的集合
+\item 必须知道列名称和列的数据类型
+\end{itemize}
+
+Cursor中的常用方法：
+
+\begin{enumerate}
+\item close() 关闭cursor，释放资源
+\item copyStringToBuffer(int colIndex, CharArrayBuffer buf)
+\item getColumnCount()
+\item getColumnIndex(String colName) 取得colName对应的列的索引
+\item getColumnIndexOrThrow(String colName)
+\item getColumnName(int ColIndex)
+\item getColumnNames()
+\item getCount() Cursor中的总行数
+\item moveToFirst() 移动光标到第一行
+\item moveToLast() 移动光标到最后一行
+\item moveToNext() 移动到下一行
+\item moveToPosition(int position) 移动到某一行
+\item moveToPrevious() 移动到上一行
+\end{enumerate}
+
+其中moveToFirst(), moveToLast(), moveToNext()用于遍历Cursor，
+getColumnIndex(String colName)取得列索引，copyStringToBuffer()
+取得某一列的值，另外还有一系列的getXXX()方法，如getInt(), getString()等。
+
+\subsection[三种查询方式]{三种查询方式}
+三种查询方式，前两种大同小异，而且都是同步查询，第三种是异步查询，
+当数据库信息量比较大时要使用异步查询。
+
+\subsubsection[普通查询方法]{普通查询方法}
+最普通的查询方法就是直接调用ContentResolver.query()，注意在使用完
+Cursor之后要close()才行。
+
+\subsubsection[让Activity去管理Cursor]{让Activity去管理Cursor}
+调用Activity.managedQuery()方法获取Cursor对象，该Cursor对象在Activity
+结束时自动关闭，该函数的参数跟ContentResolver.query()方法的参数一样。
+
+\subsubsection[异步查询]{异步查询}
+使用AsyncQueryHandler框架进行异步查询。
+
+\begin{javacode}
+private final class QueryHandler extends AsyncQueryHandler {  
+    public QueryHandler(ContentResolver cr) {  
+        super(cr);  
+    }  
+  
+    @Override  
+    protected void onQueryComplete(int token, Object cookie, Cursor cursor) {  
+        super.onQueryComplete(token, cookie, cursor);  
+        // 现在拿到Cursor对象了，调用我们自己的方法进行处理
+        dealQueryResult();
+    }  
+}
+
+// 如何使用，startQuery()是AsyncQueryHandler类中的方法
+QueryHandler qh = new QueryHandler(getContentResolver());
+qh.startQuery(/* params */); // 参数跟query()方法一样
+\end{javacode}
+
+
+
 \end{document}
