@@ -1,0 +1,564 @@
+﻿
+\documentclass[a4paper,11pt]{article}
+
+\input{../styles/article_preamble}
+\input{../styles/tikz_preamble}
+
+\sybtitle{SQL Notes}
+\sybauthor{孙延宾}
+\sybdate{\today}
+
+\begin{document}
+\tt % I love Typewriter font.
+%%%%%%%% the title page and toc %%%%%%%%%%
+\pagestyle{header}
+\sybmaketitle
+\tableofcontents
+\newpage
+
+%%%%%%% the main content %%%%%%%%%
+\pagestyle{main}
+\setcounter{page}{1}
+
+\part[Geting Started]{Geting Started}
+\section[Create database]{Create database}
+创建database并没有统一的标准，不同的软件有不同的实现方式，
+比如SQLite创建database是很简单的：
+
+\begin{bashcode}
+sqlite3.exe test.db
+\end{bashcode}
+
+如果不存在test.db就创建否则就打开(open)。
+
+\section[Create table]{Create table}
+从创建table开始一切都按照标准来执行，创建table使用
+CREATE TABLE命令，语法如下：
+
+\begin{sqlcode}
+CREATE TABLE <table name>
+(<field 1> <data type>,
+ <field 2> <data type>,
+ <field 3> <data type>,
+ ...
+ <field N> <data type>);
+\end{sqlcode}
+
+\section[Insert data]{Insert data}
+数据插入用INSERT INTO命令，语法如下：
+
+\begin{sqlcode}
+INSERT INTO <table name>
+VALUES ('value1', 'value2', ...);
+\end{sqlcode}
+
+注意，valueX必须跟创建table时的fieldX对应，而且顺序一致。另外还有
+一种更常用的格式：
+
+\begin{sqlcode}
+INSERT INTO <table name>
+(<field 1>,
+ <field 2>,
+ ...
+ <field N>)
+VALUES
+(<value for field 1>,
+ <value for field 2>,
+ ...
+ <value for field N>);
+\end{sqlcode}
+
+不仅顺序可以自己调整，而且部分field可以忽略，不进行赋值，
+这些field允许为NULL才可以，见下文的“约束”部分。
+\section[Basic query]{Basic query}
+数据查询使用SELECT命令，语法格式：
+
+\begin{sqlcode}
+SELECT <selection> FROM <table name>;
+-- 选中所有数据
+SELECT * FROM <table name>;
+\end{sqlcode}
+
+
+\part[Constraits-约束条件]{Constraits-约束条件}
+\section[NULL约束]{NULL约束}
+数据表有些字段可以禁止为NULL，可以使用NULL约束来设置，
+
+\begin{sqlcode}
+CREATE TABLE programming_language
+(id INTEGER NOT NULL,
+ language VARCHAR(20) NOT NULL,
+ author VARCHAR(25) NOT NULL,
+ year INTEGER NOT NULL,
+ stardard VARCHAR(10) NULL);
+\end{sqlcode}
+
+除了国际标准这个字段之外，其他字段均不允许出现空值。
+允许为NULL的字段，在数据插入的时候可以忽略掉。
+
+\section[Primary Key约束]{Primary Key约束}
+Primary Key，也叫做“主键”，它用来make each record unique，标注为
+主键的字段具有唯一性，不可重复，而且最多只有一个字段可以标准为主键。
+
+\begin{sqlcode}
+CREATE TABLE programming_language
+(id INTEGER NOT NULL PRIMARY KEY,
+ language VARCHAR(20) NOT NULL,
+ author VARCHAR(25) NOT NULL,
+ year INTEGER NOT NULL,
+ stardard VARCHAR(10) NULL);
+\end{sqlcode}
+
+\section[Unique Key约束]{Unique Key约束}
+Unique Key也是用来标记字段的唯一性，即两条记录的unique key字段不能是一样的，
+但是与Primary Key不同，我们可以将多个字段都标记为Unique Key。
+
+\begin{sqlcode}
+CREATE TABLE programming_language
+(id INTEGER NOT NULL PRIMARY KEY,
+ language VARCHAR(20) NOT NULL UNIQUE,
+ author VARCHAR(25) NOT NULL,
+ year INTEGER NOT NULL,
+ stardard VARCHAR(10) NULL);
+\end{sqlcode}
+
+language标记为Unique的，所以不可能有两条记录具有相同的language字段，
+除此之外，别的字段也可以同时标志位Unique的。
+
+\section[Primary Key v.s. Unique Key]{Primary Key v.s. Unique Key}
+primary key和unique key都可以标记字段的唯一性，他们的区别如下，
+
+\begin{enumerate}
+\item 最多只有一个字段可以标记为primary，但是可以同时标记多个字段为unique
+\item primary字段不允许为NULL，但是Unique字段可以是NULL
+\end{enumerate}
+
+\section[外键约束]{外键约束}
+外键用来关联两个表格，那么什么时候需要分割表格呢？考虑这样一种情形：
+某种language的发明人有两个，A和B，那么我们在填写author字段的值的时候
+改如何写呢？“A, B”、“A,B”还是别的？进一步，在query的时候又该如何查询
+呢？“WHERE author='???'”，难以填写，原因在于author字段的意义不唯一，
+这是应该杜绝的，解决方法就是分成两个表格，将author字段单独拿出来放在
+另一个表中，那要如何关联两个表呢，通过外键。
+
+\begin{sqlcode}
+-- 创建language表格
+CREATE TABLE lang_tbl
+(id INTEGER NOT NULL PRIMARY KEY,
+ language VARCHAR(20) NOT NULL,
+ year INTEGER NOT NULL,
+ standard VARCHAR(10) NULL);
+-- 创建author表格
+CREATE TABLE author_tbl
+(id INTEGER NOT NULL,
+ author VARCHAR(25) NOT NULL,
+ lang_id INTEGER REFERENCES lang_tbl(id));
+\end{sqlcode}
+
+关键就在于author\_tbl最后一个字段，lang\_id，它被称作author\_tbl
+的外键，既然是约束，那它到底约束的是啥呢？被作为外键的字段要求：
+\begin{enumerate}
+\item 外键引用的字段必须是primary或者unique的
+\item 外键引用的值如果不存在就会报错
+\end{enumerate}
+例如，假设此时lang\_tbl中只有id为1、2、3的三条记录，此时在
+author\_tbl中插入一条记录：
+
+\begin{sqlcode}
+INSERT INTO author_tbl (id, author, lang_id) VALUES (4, "John", 4);
+\end{sqlcode}
+
+它试图引用lang\_tbl中id为4的记录，此时根本不存在，所以报错。
+除此之外，外键约束的字段没有任何特殊之处。
+
+\part[操作table]{操作table}
+\section[drop table]{drop table}
+使用DROP TABLE命令丢弃一个table，也就是删除table，语法格式如下：
+
+\begin{sqlcode}
+DROP TABLE <table name>;
+\end{sqlcode}
+
+\section[create new table from existing tables]{create new table from existing tables}
+有时需要将一个表格的某些字段集合起来构成一个新的表，使用CREATE TABLE和SELECT命令
+的组合，以及新的命令AS，格式如下，
+
+\begin{sqlcode}
+CREATE TABLE <new table name> AS SELECT <selection> FROM <old table>;
+-- 如，完全复制一个表
+CREATE TABLE new_table AS SELECT * FROM old_table;
+\end{sqlcode}
+
+\section[modify tables]{modify tables}
+修改表格，可以修改数据类型，甚至可以增加、删除字段，
+使用ALTER TABLE命令，格式如下，
+
+\begin{sqlcode}
+ALTER TABLE <table name> <operation> <field with clauses>;
+-- 如，将author字段的长度从25修改为30
+ALTER TABLE programming_language ALTER author VARCHAR(30);
+\end{sqlcode}
+
+\section[describe table]{describe table}
+描述table，也就是查看table的定义，使用DESCRIBE命令，
+
+\begin{sqlcode}
+DESCRIBE <table name>;
+\end{sqlcode}
+
+注意，不同的DBMS(Database Managing System)有不同的命令来
+查看table的定义，DESCRIBE是SQL标准，但是有些DBMS并不支持，
+如SQLite使用“.schema <table name>”命令来查看表格的定义。
+
+\part[Basic Query]{Basic Query}
+\section[查询“部分”字段]{查询“部分”字段}
+使用SELECT命令可以只选择感兴趣的字段，
+
+\begin{sqlcode}
+SELECT language,year FROM programming_language;
+\end{sqlcode}
+
+把感兴趣的字段依次罗列出来即可。
+
+\section[查询结果排序]{查询结果排序}
+使用ORDER BY命令对查询结果进行排序，
+
+\begin{sqlcode}
+SELECT language,year FROM programming_language ORDER BY year;
+-- 默认是升序排列，也可以设置为降序排列
+SELECT language,year FROM programming_language ORDER BY year DESC;
+\end{sqlcode}
+
+另外，还可以使用字段的缩略格式，用数字序号代替字段名称，序号从1开始，
+
+\begin{sqlcode}
+SELECT language,year FROM programming_language ORDER BY 2 DESC;
+\end{sqlcode}
+
+因为只查询了两个字段，所以language、year的序号分别为1、2，按照出现的
+顺序排序。
+
+\section[增加查询条件]{增加查询条件}
+通过上面的操作，我们已经选择出部分字段，也就是部分“列”，SELECT命令
+还可以进一步过滤出我们感兴趣的“行”，通过增加WHERE命令来完成，
+
+\begin{sqlcode}
+SELECT language,author FROM programming_language WHERE standard='ANSI';
+\end{sqlcode}
+
+除了“=”之外，还可以使用“<”、“>”等操作符，
+
+\begin{sqlcode}
+SELECT language,author,year FROM programming_language
+    WHERE year>1970 ORDER BY author;
+\end{sqlcode}
+
+\section[增加多个查询条件]{增加多个查询条件}
+更进一步，查询条件还可以增加多个，没有限制，多个查询条件使用AND、OR、NOT来
+组合，
+
+\begin{sqlcode}
+SELECT language,author,year FROM programming_language
+    WHERE year>1970 OR standard IS NULL;
+\end{sqlcode}
+
+
+\part[处理数据]{处理数据}
+\section[Insert NULL]{Insert NULL}
+插入NULL数据，直接用NULL就行了，
+
+\begin{sqlcode}
+INSERT INTO programming_language VALUES (4 'Tcl', 'Ousterhout', '1988', NULL);
+\end{sqlcode}
+
+\section[插入从别的表中查询到的数据]{插入从别的表中查询到的数据}
+从别的表中查询的结果直接插入新的表，这只需把INSERT和SELECT组合起来即可，
+
+\begin{sqlcode}
+INSERT INTO <table 1> SELECT language,standard FROM programming_language
+    WHERE standard IS NOT NULL;
+\end{sqlcode}
+
+\section[更新数据]{更新数据}
+更新数据用UPDATE命令，格式如下，
+
+\begin{sqlcode}
+UPDATE <table name> SET
+<field 1> = <value 1>,
+<field 2> = <value 2>,
+...
+<field N> = <value N>
+WHERE <condition>;
+\end{sqlcode}
+
+例如，
+
+\begin{sqlcode}
+UPDATE programming_language SET year=1972, standard='ANSI'
+    WHERE language='Forth';
+\end{sqlcode}
+
+注意，需要更新的数据必须存在才行。
+
+\section[删除数据]{删除数据}
+删除数据用DELETE命令，按行进行删除，格式如下，
+
+\begin{sqlcode}
+DELETE FROM <table name> WHERE <condition>;
+-- 如，删除Forth语言的那一行
+DELETE FROM programming_language WHERE language='Forth';
+\end{sqlcode}
+
+
+\part[高级查询]{高级查询}
+
+\section[Column aliases]{Column aliases}
+修改查询结果中字段的名称，使其显示为不同于字段名称的其他名称，
+不影响真是的字段值，
+
+\begin{sqlcode}
+SELECT <field1> <alias1>, <field2> <alias2> ... FROM <table name>;
+-- 例如，输出结果中author显示为creator
+SELECT id, language, author creator FROM programming_language;
+\end{sqlcode}
+
+\section[Using LIKE operator]{Using LIKE operator}
+之前已经在查询条件中使用过“=”、“IS NULL”这样的操作，这里介绍一个
+“LIKE”操作符，它允许在查询条件中使用通配符：
+
+\begin{enumerate}
+\item \%： 匹配0、1、2等任意多个字符
+\item \_： 匹配“一个”字符
+\end{enumerate}
+
+例如，
+
+\begin{sqlcode}
+-- 查找language以'P'开头的记录，它可以匹配
+-- Perl, Prolog等
+SELECT * FROM programming_language WHERE language LIKE 'P%';
+
+-- 查询language为三个字符，且以'l'结尾的记录，如Tcl
+SELECT * FROM programming_language WHERE language LIKE '__l';
+\end{sqlcode}
+
+
+\part[字段上的计算操作]{字段上的计算操作}
+\section[字段上的数学计算]{字段上的数学计算}
+标准SQL支持“+”、“-”、“*”、“/”、“%”操作，但并不仅限于此，
+此时可以将字段视为变量进行操作。
+
+\begin{sqlcode}
+-- 重新计算year的值，并在结果中重命名为'decade'，所以1972的计算结果为1970
+SELECT language, year - (year % 10) decade FROM programming_language;
+\end{sqlcode}
+
+\section[字段上的字符串操作]{字段上的字符串操作}
+字符串操作最常用的就是字符串拼接，用“||”进行拼接，不过有些DBMS使用
+“+”进行拼接，由于数字可以视为字符串，所以数字可以直接用于字符串拼接，
+
+\begin{sqlcode}
+SELECT language, 'The ' || ((year/10)*10) || 's' decade FROM programming_language;
+\end{sqlcode}
+
+\section[常量-Literal]{常量-Literal}
+SQL操作table，操作结果是table，对象是table，一切都是table，
+我们当然可以在SQL语句中调整作为结果的table，字面值常量就是
+用于此目的，它会在作为结果的table中整体插入一列，字段即为
+该常量，该字段所有行的值也是该常量，字面值常量可以是string
+也可以是number，
+
+\begin{sqlcode}
+SELECT language, year, 'AD' FROM programming_language;
+\end{sqlcode}
+
+编程语言的发明时间当然是公元后的事情啦！
+
+\begin{sqlcode}
+SELECT 'Total', SUM(year) FROM programming_language;
+\end{sqlcode}
+
+哦，好吧，把所有年份加起来似乎没有什么意义。
+
+
+\part[聚合与重组]{统计函数与分组}
+\section[统计函数：count]{统计函数：count}
+如何获取table中共有多少条记录呢？使用COUNT函数，它接收一个参数，
+
+\begin{sqlcode}
+-- 表格中共有多少条记录
+SELECT COUNT(*) FROM programming_language;
+-- 计算某一个字段值不为NULL的记录数目
+SELECT COUNT(standard) FROM programming_language;
+\end{sqlcode}
+
+\section[统计函数：distinct]{统计函数：distinct}
+DISTINCT用于去除重复记录，
+
+\begin{sqlcode}
+-- 计算某一个字段非重复的记录数目
+SELECT COUNT(DISTINCT standard) FROM programming_language;
+\end{sqlcode}
+
+\section[统计函数：min、max]{统计函数：min、max}
+MIN、MAX用于获取某一个字段的最小、最大值，
+
+\begin{sqlcode}
+SELECT language, MAX(year) year FROM programming_language;
+\end{sqlcode}
+
+\section[统计函数：sum]{统计函数：sum}
+SUM函数用于统计字段的和，
+
+\begin{sqlcode}
+SELECT 'Total', MAX(year) year FROM programming_language;
+\end{sqlcode}
+
+\section[统计函数：avg]{统计函数：avg}
+AVG函数用于去平均值，
+
+\begin{sqlcode}
+-- 好吧，对年份取平均值似乎也没有多大意义！
+SELECT 'Average', AVG(year) FROM programming_language;
+\end{sqlcode}
+
+\section[数据分组]{数据分组}
+GROUP BY用于数据分组，它一般配合统计函数来使用，统计函数
+的参数是'字段'，它处理所有行的该字段，比如COUNT(standard)，它
+会把查询结果中所有行的'standard'字段的值计算个数，只要不是NULL
+就算作一个，现在我们想知道，每一个组织都指定了几个标准，如
+ANSI可能指定了3个，而ISO可能指定了2个等，此时，我们需要做的就是
+首先查询standard字段，然后就结果按照standard的值进行分组，
+然后计算每一组的个数，然后将最终结果返回，
+
+\begin{sqlcode}
+SELECT standard, count(standard) FROM programming_language
+    GROUP BY standard;
+\end{sqlcode}
+
+这里需要注意，standard字段的行数要大于或等于分组数目，只有
+standard没有重复的时候他们才相等，如果他们不相等，那么最终结果
+要如何显示呢？假设国际标准组织有ANSI, ISO，但是他们制定了8个
+语言的标准，此时根据standard会查询出8行，而分组之后只有2组，
+那最终结果是显示2行呢还是8行呢？一般的DBMS都显示2行！
+
+由此引出另一个问题，下面的情形，结果会显示几行呢？
+
+\begin{sqlcode}
+SELECT language, count(language) FROM programming_language;
+\end{sqlcode}
+
+根据language可能查询出8行，但是count(language)只有一个结果，
+最终结果该显示几行呢？这个问题上不同的DBMS分歧就比较大了，
+SQLite只显示1行，此时language显示哪一个又成了问题，SQLite
+似乎是显示的最后一个，其他的DBMS一般显示8行，每个language
+显示一行，第一列当然是language的值，第二列为count(language)
+的值，当然每一行的第二列都是一样的。
+
+\vspace{5pt}
+
+另外还有一个问题，SQL标准规定GROUP BY的值只能从SELET的字段
+列表中选择，而且要包含该列表中所有的字段，顺序可以自己排列，
+
+\begin{sqlcode}
+-- GROUP BY的参数只能从SELECT list中选择，而且必须全部包含
+-- list中的字段
+SELECT language, author, standard FROM programming_language
+    GROUP BY standard, author, language;
+\end{sqlcode}
+
+但是，实际上不同的DBMS做法又不同，SQLite也实现了SQL标准，
+但是同时提供了不同的实现方式，GROUP BY的参数不一定在SELECT
+list中选择，也不必完全包含list中的所有字段，这在使用起来
+比较方便。
+
+\section[HAVING从句]{HAVING从句}
+类似于WHERE从句可以添加查询条件，GROUP BY也有一个从句可以过滤
+不同的分组，是的，分组之后我们也可以对不同的分组进行过滤，从而
+只关注感兴趣的分组，HAVING从句紧跟GROUP BY。
+
+\begin{sqlcode}
+-- 对年份进行分组，然后过滤出1985年以后的年份用于进一步统计(count)
+SELECT year, count(year) FROM programming_language
+    GROUP BY year HAVING year > 1985;
+\end{sqlcode}
+
+
+\part[联合-JOIN]{联合-JOIN}
+\section[什么是联合]{什么是联合}
+什么是JOIN？想象这样一个场景，我们的编程语言用一个表格来记录，但是
+由于一个语言可能有多个作者，为了atomonicy，我们为作者单独构建了一个
+表，现在共有两个表：lang\_tbl和author\_tbl，其中author\_tbl的lang\_id
+字段关联到lang\_tbl的id字段（还记得REFERENCES吗），我们要怎么进行查询
+呢？SELECT提供了同时从多个表格中进行查询的功能，这就是多个表格的
+“联合”(JOIN)，
+
+\begin{sqlcode}
+SELECT language, author FROM lang_tbl, author_tbl
+    WHERE lang_id = id;
+\end{sqlcode}
+
+这样就可以同时对两个表进行查询了。
+
+以上是简略格式，下面是使用JOIN，ON的格式，两者功能一样，
+
+\begin{sqlcode}
+SELECT language, author FROM lang_tbl JOIN author_tbl ON lang_id = id;
+\end{sqlcode}
+
+\section[消除字段歧义]{消除字段歧义}
+上面的lang\_id = id虽然没有指名各个字段归属于哪个表，但是他们含义是明确的，
+因为只有author\_tbl中有lang\_id字段，只有lang\_tbl中有id字段（author\_tbl
+中的primary key用author\_id表示），但是如果两个表格关联的字段名称一样该
+怎么办呢，这要用到SQL的“.”操作，
+
+\begin{sqlcode}
+SELECT language, author FROM lang_tbl JOIN author_tbl
+    ON author_tbl.lang_id = lang_tbl.id;
+\end{sqlcode}
+
+OK，这要意义就很明确了，另外还可以使用“表格别名”(table alias，还记得
+之前的column alias吗，用法一致啊)，功能是一样的，
+
+\begin{sqlcode}
+SELECT language, author FROM lang_tbl a JOIN author_tbl b
+    ON a.id = b.lang_id;
+\end{sqlcode}
+
+\section[交叉联合]{交叉联合}
+如果没有查询条件，即没有WHERE从句也没有ON从句，查询结果会是怎样的呢？
+这叫做交叉联合，就是把所有可能的结果都给出来，也就是两个表格做
+笛卡尔乘积，
+
+\begin{sqlcode}
+SELECT language, author FROM lang_tbl, author_tbl;
+\end{sqlcode}
+
+结果将会是：
+
+language1 author1\\
+language1 author2\\
+language1 author3\\
+language2 author1\\
+language2 author2\\
+language2 author3\\
+language3 author1\\
+...
+
+另一种语法格式，他们功能是一样的，
+
+\begin{sqlcode}
+SELECT language, author FROM lang_tbl CROSS JOIN author_tbl;
+\end{sqlcode}
+
+\section[自关联]{自关联}
+self-join，自关联，用于同一个表格中不同字段之间有关联关系的情形，
+如语言A受语言B启发，语言B受语言C启发，等等，
+
+\begin{sqlcode}
+SELECT lang1.language, lang2.language influenced_by
+FROM lang_tbl lang1, lang_tbl lang2
+WHERE lang2.influenced_by = lang1.id;
+\end{sqlcode}
+
+\end{document}

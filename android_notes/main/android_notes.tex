@@ -753,5 +753,203 @@ qh.startQuery(/* params */); // 参数跟query()方法一样
 \end{javacode}
 
 
+\section[Context类的构成]{Context类的构成}
+Context对象作为整个Application的运行环境，它的构成其实并不复杂。
+Activity, Service, Broadcast, ContentProvider四大组件都是通过
+代理模式(implement Context，然后将真正的实现转移到ContextImpl对象中)
+连接到真正实现Context接口的对象中。
+
+\subsection[application中的各种资源]{application中的各种资源}
+一个application有很多资源，图片、字符串、甚至是音视频文件等，Context提供了
+访问这些资源的接口，
+
+\begin{javacode}
+// 获取Context对象本身
+public Context getApplicationContext();
+// assets/目录
+public AssetManager getAssets();
+// res/目录
+public Resources getResources();
+// 获取ContentResolver，用于访问数据库
+public ContentResolver getContentResolver();
+// 获取package manager，每个app都是有pm管理的
+public PackageManager getPackageManager();
+// 别的线程是如何获取到主线程的looper的呢，here it is!
+public Looper getMainLooper();
+public boolean startInstrumentation(
+             ComponentName className,
+             String profileFile,
+             Bundle arguments);
+// !IMPORTANT 获取系统服务
+public Object getSystemService(String name);
+// 创建Context对象
+public Context createPakcageContext(String name, int flags);
+\end{javacode}
+
+\subsection[application相关信息]{application相关信息}
+application的相关信息
+
+\begin{javacode}
+public ClassLoader getClassLoader();
+public String getPakcageName();
+public ApplicationInfo getApplicationInfo();
+public String getPackageResourcePath();
+public String getPackageCodePath();
+\end{javacode}
+
+\subsection[theme相关操作]{theme相关操作}
+theme相关的操作，这些已经不推荐使用，使用ThemeManager代替
+
+\begin{javacode}
+public void setTheme(int resId);
+public int getThemeResId();
+public Resources.Theme getTheme();
+\end{javacode}
+
+\subsection[wallpaper相关操作]{wallpaper相关操作}
+wallpaper相关操作，不推荐使用，使用WallpaperManager代替
+
+\begin{javacode}
+public Drawable getWallpaper();
+public Drawable peekWallpaper();
+public getWallpaperDesiredMinimumWidth();
+public getWallpaperDesiredMinimumHeight();
+public void setWallpaper(Bitmap bitmap);
+public void setWallpaper(InputStream data);
+public void clearWallpaper();
+\end{javacode}
+
+\subsection[file相关的操作]{file相关的操作}
+application的“私有”文件相关操作，只需文件名，不需要具体路径
+
+\begin{javacode}
+public SharedPreferences getSharedPreferences(String name, int mode);
+public FileInputString openFileInput(String name);
+public FileOutputString openFileOutput(String name, int mode);
+public boolean deleteFile(String name);
+public File getFileStreamPath(String name);
+public String[] fileList();
+public File getFilesDir();
+public File getExternalFilesDir(String type);
+public File getObbDir();
+public File getCacheDir();
+public File getExternalCacheDir();
+public File getDir(String name, int mode);
+\end{javacode}
+
+\subsection[database相关操作]{database相关操作}
+database相关操作
+
+\begin{javacode}
+public SQLiteDatabase openOrCreateDatabase(
+    String name, int mode, CursorFactory factory);
+public SQLiteDatabase openOrCreateDatabase(
+    String name, int mode, CursorFactory factory, DatabaseErrorHandler errorHandler);
+public boolean deleteDatabase(String name);
+public File getDatabasePath(String name);
+public String[] databaseList();
+\end{javacode}
+
+\subsection[activity相关操作]{activity相关操作}
+!IMPORTANT activity相关操作
+
+\begin{javacode}
+public void startActivity(Intent intent);
+public void startActivity(Intent intent, Bundle options);
+public void startActivities(Intent[] intents);
+public void startActivities(Intent[] intents, Bundle options);
+\end{javacode}
+
+\subsection[broadcast相关操作]{broadcast相关操作}
+!IMPORTANT broadcast相关操作
+
+\begin{javacode}
+public void sendBroadcast(Intent intent);
+public void sendBroadcast(Intent intent, int userId);
+public void sendBroadcast(Intent intent, String receiverPermission);
+public void sendOrderedBroadcast(Intent intent, String receiverPermission);
+public void sendOrderedBroadcast(
+            Intent intent,
+            String receiverPermission,
+            BroadcastReceiver resultReceiver,
+            Hanler scheduler,
+            int initialCode,
+            String initialData,
+            Bundle initialExtra);
+public void sendStickyBroadcast(Intent intent);
+public void sendStickyOrderedBroadcast(
+            Intent intent,
+            String receiverPermission,
+            BroadcastReceiver resultReceiver,
+            Hanler scheduler,
+            int initialCode,
+            String initialData,
+            Bundle initialExtra);
+public void removeStickyBroadcast(Intent intent);
+public Intent registerReceiver(BroadcastReceiver receiver, IntentFilter filter);
+public Intent registerReceiver(
+            BroadcastReceiver receiver,
+            IntentFilter filter,
+            String broadcastPermission,
+            Hanler scheduler);
+public void unregisterReceiver(BroadcastReceiver receiver);
+\end{javacode}
+
+\subsection[service相关操作]{service相关操作}
+!IMPORTANT service相关操作
+
+\begin{javacode}
+public ComponentName startService(Intent service);
+public boolean stopService(Intent name);
+public boolean bindService(Intent service, ServiceConnection conn, int flags);
+public boolean bindService(Intent service, ServiceConnection conn, int flags, int userId);
+public void unbindService(ServiceConnection conn);
+\end{javacode}
+
+\subsection[permission相关操作]{permission相关操作}
+!IMPORTANT permission相关操作
+
+\begin{javacode}
+public int checkPermission(String permission, int pid, int uid);
+public int checkCallingPermission(String permission);
+public int checkCallingOrSelfPermission(String permission);
+public void enforcePermission(String permission, int pid, int uid, String message);
+public void enforceCallingPermission(String permission, String message);
+public void enforceCallingOrSelfPermission(String permission, String message);
+public void grantUriPermission(String toPackage, Uri uri, int modeFlags);
+public void revokeUriPermission(Uri uri, int modeFlags);
+public int checkUriPermission(Uri uri, int pid, int uid, int modeFlags);
+public int checkCallingUriPermission(Uri uri, int modeFlags);
+public int checkCallingOrSelfUriPermission(Uri uri, int modeFlags);
+public int checkUriPermission(Uri uri, String readPermission,
+            String writePermission, int pid, int uid, int modeFlags);
+public void enforceUriPermission(Uri uri, int pid, int uid,
+            int modeFlags, String message);
+public void enforceCallingUriPermission(Uri uri, int modeFlags, String message);
+public void enforceCallingOrSelfUriPermission(Uri uri, int modeFlags,
+            String message);
+public void enforceUriPermission(Uri uri, String readPermission,
+            String writePermission, int pid, int uid, int modeFlags,String message);
+\end{javacode}
+
+\section[Component]{Component}
+Component是各种组件的统称，有时需要制定某个Component，就可以创建一个Component对象，
+如通过Intent启动一个service，该service在onStartCommand()中处理各种action，但是我们
+不想将各种action暴露出来(即Manifest文件中没有注册各种action)，那该如何通过Intent
+调用该service呢？
+
+此时可以通过Intent的setComponent(Component c)函数来指定目标service，然后通过
+Intent.setAction(String action)来指定各种action。
+
+\begin{javacode}
+Intent i = new Intent("com.example.syb.service.play_action");
+Component c = new Component("com.example.syb", "com.example.syb.service.ActionService");
+i.setComponent(c);
+startService(i);
+\end{javacode}
+
+注意new Component时的参数，pkg参数为app的package，也即app的进程名称，第一个参数
+必须为'root' package name；一个app里完全可以有多个java package，此时第二个参数的
+classname就要用全称。
 
 \end{document}
