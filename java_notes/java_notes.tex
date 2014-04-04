@@ -20,6 +20,128 @@
 \pagestyle{main}
 \setcounter{page}{1}
 
+\part[Basic Usage]{Basic Usage}
+\section[Enumeration vs Iterator]{Enumeration vs Iterator}
+Enumeration和Iterator都是用于遍历集合，Enumeration主要用于遍历
+Vector、HashTable，而Iterator用于遍历其他集合。两者的主要区别是：
+Enumeration不可以在遍历过程中删除元素，而Iterator则可以，
+比较Enumeration和Iterator的定义就可以明确这一点。
+
+下面是Enumeration的定义，
+
+\begin{javacode}
+public interface Enumeration<E> {
+  boolean hasMoreElements();
+  E nextElement();
+}
+\end{javacode}
+
+下面是Iterator的定义，
+
+\begin{javacode}
+public interface Iterator<E> {
+  boolean hasNext();
+  E next();
+  void remove();
+}
+\end{javacode}
+
+另附使用实例(Vector既可以Enumeration遍历也可用Iterator遍历)，
+
+\begin{javacode}
+Vector<String> v = new Vector<String>();
+v.add("A");
+v.add("B");
+v.add("C");
+
+// 使用Enumeration遍历
+// 'for' version
+String elem;
+for(Enumeration<String> e = v.elements(); e.hasMoreElements(); ) {
+  elem = e.nextElement();
+  System.out.println(elem);
+}
+// 'while' version
+Enumeration<String> e = v.elements();
+while(e.hasMoreElements()) {
+  elem = e.nextElement();
+  System.out.println(elem);
+}
+
+// 使用Iterator遍历
+// 'for' version
+String cur;
+for(Iterator<String> iter = v.iterator(); iter.hasNext(); ) {
+  cur = iter.next();
+  System.out.println(cur);
+  if("B".equals(cur)) {
+    iter.remove();
+  }
+}
+// 'while' version
+Iterator<String> iter = v.iterator();
+while(iter.hasNext()) {
+  cur = iter.next();
+  System.out.println(cur);
+  if("B".equals(cur)) {
+    iter.remove();
+  }
+}
+\end{javacode}
+
+\section[Print system properties]{Print system properties}
+\begin{javacode}
+public void printSystemProperties() {
+  Properties p = System.getProperties();
+  Enumeration<Object> e = p.keys();
+  String key;
+  
+  for( ; e.hasMoreElements(); ) {
+    key = (String) e.nextElement();
+    System.out.println(key + " = " + p.getProperty(key));
+  }
+}
+\end{javacode}
+
+\section[Double braces initialization]{Double braces initialization}
+Java支持匿名内部类(Inner anonymous class)，既然是匿名的，就无法在其他地方引用，
+也是也就只能在创建类的同时创建对象(毕竟，类不用来创建对象还能干啥呢)，可是
+其他类都可以有构造函数，而且构造函数的名字就是类名，匿名内部类也可以有
+构造函数，eh....，好吧，它的构造函数没有名字，匿名嘛！但是这是不对的，只是
+可以这样理解，内层的大括号叫做instance initializer，它在匿名内部类构造时执行。
+
+于是乎，有了下面的代码，
+
+\begin{javacode}
+// 初始化HashMap
+HashMap<String, String> hm = new HashMap<String, String>() {
+  // instance initializer(对比static initializer)
+  {
+    // 匿名内部类的this指向父类(即HashMap)对象
+    this.put("k1", "v1");
+    this.put("k2", "v2");
+    this.put("k3", "v3");
+  }
+}
+
+// 初始化ArrayList
+ArrayList<String> al = new ArrayList<String>() {
+  {
+    add("A");
+    add("A");
+    add("A");
+  }
+}
+
+// 任意类都可以，Base是任意自定义类
+Base b = new Base() {
+  {
+    setName(Inner anonymous class, instance initializer.);
+  }
+}
+\end{javacode}
+
+
 \part[Multi-thread and Concurrency]{Multi-thread Concurrency}
 \section[How to create Java thread]{How to create Java thread}
 
