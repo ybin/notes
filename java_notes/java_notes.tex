@@ -89,19 +89,117 @@ while(iter.hasNext()) {
 }
 \end{javacode}
 
+\section[遍历Map]{遍历Map}
+遍历Map时需要从collection的视角去看Map。
+
+\begin{javacode}
+public void operateMap() {
+  HashMap<String, String> info = new HashMap<String, String>() {
+    private static final long serialVersionUID = 1L;
+    {
+      put("John", "42");
+      put("Eric", "43");
+      put("Waston", "44");
+    }
+  };
+
+  /*
+   * Collection<E> interface extends Iterable<T> interface,
+   * so all Collection including Set<E>, List<E>, Queue<E>
+   * can get an Iterator via iterator() method.
+   */
+
+  // 遍历Map - 1
+  Iterator<Entry<String, String>> entryIter = info.entrySet().iterator();
+  while(entryIter.hasNext()) {
+    Entry<String, String> entry = entryIter.next();
+    System.out.println("key: " + entry.getKey() + ", value: " + entry.getValue());
+  }
+
+  // 遍历Map - 2
+  Iterator<String> keyIter = info.keySet().iterator();
+  while(keyIter.hasNext()) {
+    String key = keyIter.next();
+    String value = info.get(key);
+    System.out.println("key: " + key + ", value: " + value);
+  }
+
+  // 遍历Map - 3，遍历Value
+  Iterator<String> valueIter = info.values().iterator();
+  while(valueIter.hasNext()) {
+    String value = valueIter.next();
+    System.out.println("value: " + value);
+  }
+}
+\end{javacode}
+
 \section[Print system properties]{Print system properties}
 \begin{javacode}
 public void printSystemProperties() {
   Properties p = System.getProperties();
   Enumeration<Object> e = p.keys();
   String key;
-  
+
   for( ; e.hasMoreElements(); ) {
     key = (String) e.nextElement();
     System.out.println(key + " = " + p.getProperty(key));
   }
 }
 \end{javacode}
+
+\section[Inner Class]{Inner Class}
+Java中，Inner class的field/method相当于Outer class的field/method，
+只不过要通过Inner class或Inner class的对象对其进行访问而已。
+
+\subsection[内部类的可见性]{内部类的可见性}
+内部类的field/method跟外部类的field/method本质上是一样的，只是访问
+方式不同而已，所以内部类和外部类相互之间是“完全透明”的。
+
+\subsection[Create object of Inner class ]{Create object of Inner class}
+由于non-static inner class依附于outer class而存在，所以创建这种类型的
+对象时必须有outer class对象存在才行；而对于static inner class则无此限制。
+
+\begin{javacode}
+class Outer {
+  private int out = 42;
+
+  // non-static inner class
+  public class InstanceInner {
+    private int instanceInner = out;
+  }
+
+  // static inner class
+  public static class StaticInner {
+    private static int staticInner;
+  }
+
+  private void out() {
+    // access 'private' field of inner class
+    int i = new InstanceInner().instanceInner;
+    int k = StaticInner.staticInner;
+  }
+}
+
+class Test {
+  void test() {
+    Outer outer = new Outer();
+    // non-static内部类依附于外部类而存在，所以实例化时必须存在外部类对象
+    InstanceInner iInner = outer.new InstanceInner();
+    // static内部类则可直接实例化，不需外部类对象存在
+    StaticInner sInner = new Outer.StaticInner();
+  }
+}
+\end{javacode}
+
+\subsection[Inner class for JVM]{Inner class for JVM}
+在JVM看来，inner class是如何表示的呢？
+
+\emph{在JVM中，根本没有inner class这个概念！一切都是顶级类！}
+
+只是内部类最终编译成class文件时，其名称是...\$...class这样的形式。
+
+啊？那岂不是说：类的private成员可以被外部类(not outer class)访问？
+
 
 \section[Double braces initialization]{Double braces initialization}
 Java支持匿名内部类(Inner anonymous class)，既然是匿名的，就无法在其他地方引用，
@@ -142,6 +240,73 @@ Base b = new Base() {
 \end{javacode}
 
 
+\part[Java IO]{Java IO}
+Java的IO库位于java.io.*包中。
+
+\section[面向字节的IO接口]{面向字节的IO接口}
+InputStream和OutputStream是面向字节的IO接口，它们处理的是字节流
+
+\subsection[InputStream]{InputStream}
+\begin{figure}
+  \centering
+  \includegraphics[width=.9\textwidth]{picturedir/inputstream.png}
+  \caption{面向字节的InputStream接口}
+  \label{fig:inputstream}
+\end{figure}
+
+图\ref{fig:inputstream}展示了InputStream的基本接口。
+InputStream是一个抽象类，真正使用时都是使用其子类进行实例化。
+
+\subsubsection[FileInputStream]{FileInputStream}
+\subsubsection[ByteArrayInputStream]{ByteArrayInputStream}
+\subsubsection[ObjectInputStream]{ObjectInputStream}
+\subsubsection[PipedInputStream]{PipedInputStream}
+\subsubsection[FilterInputStream]{FilterInputStream}
+
+\subsection[OutputStream]{OuttputStream}
+\begin{figure}
+  \centering
+  \includegraphics[width=.9\textwidth]{picturedir/outputstream.png}
+  \caption{面向字节的OutputStream接口}
+  \label{fig:outputstream}
+\end{figure}
+
+图\ref{fig:outputstream}展示了OutputStream的基本接口。
+OutputStream是一个抽象类，真正使用时都是使用其子类进行实例化。
+\subsubsection[FileOutputStream]{FileOutputStream}
+\subsubsection[ByteArrayOutputStream]{ByteArrayOutputStream}
+\subsubsection[ObjectOutputStream]{ObjectOutputStream}
+\subsubsection[PipedOutputStream]{PipedOutputStream}
+\subsubsection[FilterOutputStream]{FilterOutputStream}
+
+
+\section[面向字符的IO接口]{面向字符的IO接口}
+\subsection[面向字符的Input接口]{面向字符的Input接口}
+\begin{figure}
+  \centering
+  \includegraphics[width=.9\textwidth]{picturedir/reader.png}
+  \caption{面向字符的Reader接口}
+  \label{fig:reader}
+\end{figure}
+
+图\ref{fig:reader}展示了Reader的基本接口。
+
+\subsection[面向字符的Output接口]{面向字符的Output接口}
+\begin{figure}
+  \centering
+  \includegraphics[width=.9\textwidth]{picturedir/writer.png}
+  \caption{面向字符的Writer接口}
+  \label{fig:writer}
+\end{figure}
+
+图\ref{fig:writer}展示了Writer的基本接口。
+
+
+
+\part[Java NIO]{Java NIO}
+
+
+
 \part[Multi-thread and Concurrency]{Multi-thread Concurrency}
 \section[How to create Java thread]{How to create Java thread}
 
@@ -158,7 +323,7 @@ public class JoinTest {
   public static void main(String[] args) {
     Thread t1 = new Thread(new MyRunnable(), "Thread-1");
     Thread t2 = new Thread(new MyRunnable(), "Thread-2");
-    
+
     t1.start();
     t2.start();
     System.out.println("Main thread end.");
@@ -374,6 +539,23 @@ class Notifier implements Runnable {
 一个会获得msg.lock，然后执行完msg.wait()方法继而完成
 synchronized block之后释放msg.lock，依次重复，直到所有等待线程
 都完成这个过程，整个同步过程也就结束了。
+
+
+\part[JVM]{Java Virtual Machine}
+Java Virtural Machine(JVM)可能有三种解释：
+\begin{enumerate}
+  \item The abstract specification，即JVM规范
+  \item A concrete implementation，即一个具体的JVM实现
+  \item A runtime instance，即一个运行时JVM实例
+\end{enumerate}
+简单一点儿理解，Java Virtual Machine可能指的是"specification"、"implementation"、
+"instance"。
+
+\section[Lifetime of JVM instance]{Lifetime of JVM instance}
+JVM instance的使命就是“运行Java application”，Java application启动时创建，结束时
+销毁。Java application和JVM instance是一一对应的，即每个Java application都运行在
+一个“单独”的JVM instance中，如果一个电脑上同时运行了3个Java application，那么将会有
+3个JVM instance同时存在。
 
 
 \end{document}

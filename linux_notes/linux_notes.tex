@@ -131,7 +131,7 @@
   “与”是非常triky的方式：
 
   grep -E pattern1 filename | grep -E pattern2 filename
-  
+
   \subsection[正则表达式：或]{正则表达式：或}
   “或”有多种表达方式。注意“\bs|”、“|”两边不要有空格哦！
 
@@ -140,7 +140,7 @@
   \item grep -E 'pattern1|pattern2' filename
   \item grep -e pattern1 -e pattern2 filename
   \end{itemize}
-  
+
   \subsection[正则表达式：非]{正则表达式：非}
   这个“非”方法使用-v选项，不太美观，肯定有更好的。
 
@@ -270,10 +270,6 @@
   \cmd{javap -verbose runnable}
   注意：runnable为.class文件，后缀.class不要加上。
 
-  \section[Windows客串：命令行模式启动Emacs]{Windows客串：命令行模式启动Emacs}
-  直接在cmd中使用'emacs'启动时，cmd会一直被占用，使用'\&'也不行，可以使用
-  'runemacs'代替'emacs'，此为Emacs的命令行模式，cmd不会被占用。
-
   \section[常用压缩/解压缩命令]{常用压缩/解压缩命令}
   命令行下有很多压缩、解压缩命令，其中tar可以包含很多，另外还有就是zip、rar格式。
   \subsection[zip文件的压缩和解压缩]{zip文件的压缩和解压缩}
@@ -347,7 +343,7 @@
   Login shell:\\
   登录时：\\
   if /etc/profile exists, source it.
-  
+
   if \~{}/.bash\_profile exists, source it.\\
   else if \~{}/.bash\_login exists, source it.\\
   else if \~{}/.profile exists, source it
@@ -416,7 +412,7 @@
   并非stdin，pipe只绑定stdin，不涉及命令的参数。
 
   另外，pipe在整个命令结束之后才将其stdout转送到下一个命令的stdin，如：
-  
+
   \begin{bashcode}
     find -type f -name *.tex -exec cat {} \; | wc -l
   \end{bashcode}
@@ -456,7 +452,7 @@
 
   \section[Windows客串：批处理-字符串操作]{windows客串：批处理之字符串操作}
   批处理中截取字符串的统一格式为：
-  
+
   \begin{bashcode}
     set str=123456789
     %str:~n,k%
@@ -467,7 +463,7 @@
   n表示substring的开始位置（0-based，且不能省略）\\
   k表示substring的长度，默认值为开始位置直到字符串结束，如果超出字符串结尾，就一直取到结尾，如果k省略，逗号也要省略\\
   n,k为负数时，表示从字符串结尾开始算。
-  
+
 
   示例：\par
   \begin{bashcode}
@@ -492,11 +488,26 @@
   \end{bashcode}
 
   示例：
-  
+
   \begin{bashcode}
     set str=sun ybin
     echo 名字：%str%
     echo "ybin"=>"yanbin": %str:ybin=yan bin%
+  \end{bashcode}
+  
+  \section[Windows客串：命令行模式启动Emacs]{Windows客串：命令行模式启动Emacs}
+  直接在cmd中使用'emacs'启动时，cmd会一直被占用，使用'\&'也不行，可以使用
+  'runemacs'代替'emacs'，此为Emacs的命令行模式，cmd不会被占用。
+  
+  \section[Windows客串：递归删除.svn目录]{Windows客串：递归删除.svn目录}
+  \begin{bashcode}
+    @echo on
+    @echo 正在清理SVN文件，请稍候......
+    @rem 循环删除当前目录及子目录下所有的SVN文件
+    @rem for /r . %%a in (.) do @if exist "%%a\.svn" @echo "%%a\.svn"
+    @for /r . %%a in (.) do @if exist "%%a\.svn" rd /s /q "%%a\.svn"
+    @echo 清理完毕！！！
+    @pause
   \end{bashcode}
 
 
@@ -532,7 +543,7 @@
   fd/: 该目录下记录了进程打开的所有文件/设备，该目录下均为link，以文件描述符号命名，
   通过ls -l可以看到每个fd关联到那个文件/设备，如：9 -> /dev/binder、
   13 -> /system/framework/framework.jar等。
-  
+
   \vspace{5pt}
 
   实例：
@@ -549,6 +560,6 @@
   debugfs的挂载点(mount point)为/sys/kernel/debug/，例如binder的debugfs
   信息就可以在/sys/kernel/debug/binder/目录中找到。
 
-  
+
 
 \end{document}
