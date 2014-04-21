@@ -202,40 +202,200 @@ class Test {
 
 
 \section[Double braces initialization]{Double braces initialization}
+要讲明白双大括号初始化就要先了解什么是instance initializer和static initializer，
+该部分Java语言规范在\href{http://docs.oracle.com/javase/specs/jls/se7/html/jls-8.html#jls-8.6}{JLS 8.6}。
+
+\begin{javacode}
+class Initializer {
+
+  // executed when an instance of the class is created
+  static {
+    System.out.println("static initializer");
+  }
+
+  // executed when the class is initialized
+  {
+    System.out.println("instance initializer");
+  }
+
+  public Initializer() {
+    System.out.println("constructor");
+  }
+
+  void initialize() {
+    System.out.println("instance method");
+  }
+}
+\end{javacode}
+
+执行顺序：static initializer, instance initializer, constructor。
+
 Java支持匿名内部类(Inner anonymous class)，既然是匿名的，就无法在其他地方引用，
-也是也就只能在创建类的同时创建对象(毕竟，类不用来创建对象还能干啥呢)，可是
-其他类都可以有构造函数，而且构造函数的名字就是类名，匿名内部类也可以有
-构造函数，eh....，好吧，它的构造函数没有名字，匿名嘛！但是这是不对的，只是
-可以这样理解，内层的大括号叫做instance initializer，它在匿名内部类构造时执行。
+因此也就只能在创建类的同时创建对象(毕竟，类不用来创建对象还能干啥呢)，内层的
+大括号即为instance initializer。
 
 于是乎，有了下面的代码，
 
 \begin{javacode}
-// 初始化HashMap
-HashMap<String, String> hm = new HashMap<String, String>() {
-  // instance initializer(对比static initializer)
-  {
-    // 匿名内部类的this指向父类(即HashMap)对象
-    this.put("k1", "v1");
-    this.put("k2", "v2");
-    this.put("k3", "v3");
+package com.example.javademo;
+Class DoubleBraceTest {
+  void test() {
+    // 初始化HashMap
+    HashMap<String, String> hm = new HashMap<String, String>() {
+      // instance initializer(对比static initializer)
+      {
+        // 匿名内部类的this指向父类(即HashMap)对象
+        this.put("k1", "v1");
+        this.put("k2", "v2");
+        this.put("k3", "v3");
+      }
+    }
+
+    // 任意类都可以，Base是任意自定义类
+    Base b = new Base() {
+      {
+        setName(Inner anonymous class, instance initializer.);
+      }
+    }
+
+    // result: super class: java.util.HashMap
+    System.out.println("super class: " + hm.getClass().getSuperclass().getName());
+    // result: class name: com.example.javademo.DoubleBraceTest$2
+    System.out.println("class name: " + hm.getClass().getName());
   }
 }
+\end{javacode}
 
-// 初始化ArrayList
-ArrayList<String> al = new ArrayList<String>() {
-  {
-    add("A");
-    add("A");
-    add("A");
+注意：double braces initialization是不鼓励使用的，因为它本质上是定义了一个
+匿名内部类，因此实例化的instance会一直保存对外部类(DoubleBraceTest类)实例
+的引用，并且这也会让类加载器管理更多的类。
+
+\section[Polymorphism - 多态]{Polymorphism - 多态}
+在Java中(其他OOP中也是如此)，Polymorphism(多态)是一个概念，它用于method的定义，
+有两种表现形式：override和overload。两种多态形式各有不同的限定条件。
+
+\subsection[override]{override}
+父类方法和子类方法构成override必须满足如下条件：
+
+\begin{enumerate}
+  \item 子类方法和父类方法的name、parameters、return type必须完全一样
+  \item 子类方法不能缩小(reduce)父类方法的访问权限
+  \item 子类方法不能扩大或者改变父类方法的异常范围，详见第\ref{sec:exceptions-in-override}节
+\end{enumerate}
+
+注意：final修饰的方法不能被override。
+
+\subsection[overload]{overload}
+位于同一个类中或者分别位于父类和子类中的两个方法，构成overload必须满足如下条件：
+
+\begin{enumerate}
+  \item parameters(包括参数类型、个数、顺序)不能完全相同
+\end{enumerate}
+
+注意，如果两个方法参数完全相同而只是返回值不同，则它们不构成overload关系。
+
+\section[Exceptions in Java]{Exceptions in Java}
+Java中的异常分为两类：checked exception和runtime exception(uncheck exception)，
+如图\ref{fig:exceptions}所示，
+RuntimeException及其子类叫做runtime exception，也叫做uncheck exception，
+Exception的其他子类叫做checked exception。
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.7\textwidth]{picturedir/JavaExceptions.jpeg}\\
+  \caption{Java的异常体系}\label{fig:exceptions}
+\end{figure}
+
+\subsection[名字的由来]{名字的由来}
+所谓的checked与uncheck指的是compiler的行为，即compiler在编译时(废话，肯定是编译时)
+作检查(check)的exception叫做checked exception，其他exception叫做runtime exception，
+也叫做uncheck exception，
+
+\begin{javacode}
+class ExceptionTest {
+  void testCheckedException() throws IOException { }
+  void testRuntimeException() throws IndexOutOfBoundsException { }
+  void test() {
+    testCheckedException(); // compile error
+    testRuntimeException(); // no compile error
   }
 }
+\end{javacode}
 
-// 任意类都可以，Base是任意自定义类
-Base b = new Base() {
-  {
-    setName(Inner anonymous class, instance initializer.);
-  }
+\subsection[设计的初衷]{设计的初衷}
+在一个方法的实现者角度来看，checked exception意味着我知道在该方法被调用的过程中
+可能会发生某些异常，但是对此我无能为力，我只能throws exception(方法签名中)以提醒你，
+作为方法调用者，你要自己catch这些异常。比如某个文件正在读取时被其他进程删除了，
+又比如正在进行网络数据传输却突然断网了。这些异常是callee用来提醒caller的，compiler
+会检查这些异常，提醒caller进行异常捕获。
+
+其他所有的exception都是runtime exception，如NullPointerException，它意在曝露出
+方法实现上的错误，如果有，这样的exception越早曝露越好，此时我们必须修改代码来除错。
+
+从两种异常的设计初衷来看，作为方法的调用者(callee)，应该捕获所有checked exception
+(废话，不捕获就无法通过编译啊)并作相应处理，如给用户友好的错误提示；而runtime exception
+则不应该捕获。
+
+\section[override方法中的exception]{override方法中的exception}
+\label{sec:exceptions-in-override}
+在子类方法和父类方法进行override时，对子类方法和父类方法所抛出的异常有如下要求：
+
+\begin{enumerate}
+  \item 不论父类方法抛出何种异常，子类方法都可以不抛出任何异常
+  \item 父类方法和子类方法所抛出的任何runtime异常都不受限制
+  \item 子类方法抛出的checked异常必须equal或者derive父类方法抛出的checked异常
+\end{enumerate}
+
+\begin{javacode}
+class Base {
+  public void foo() throws IOException { }
+  public void bar() throws IOException { }
+  public void base1() throws IOException { }
+  public void base2() throws ArithmeticException { }
+  public void base3() throws IOException { }
+  public void base4() throws ArithmeticException { }
+  public void base5() { }
+}
+
+class Derived extends Base {
+  @Override
+  public void foo() throws FileNotFoundException { } // allowed
+  @Override
+  public void bar() throws SQLException { } // NOT allowed
+  
+  @Override
+  public void base1() { } // allowed, do not throw any exception
+  @Override
+  public void base2() throws IndexOutOfBoundsException { } // allowed
+  @Override
+  public void base3() throws IndexOutOfBoundsException { } // allowed
+  @Override
+  public void base4() throws IOException { } // NOT allowed
+  @Override
+  public void base5() throws IOException { } // NOT allowed
+}
+\end{javacode}
+
+IOException、FileNotFoundException、SQLException都是checked异常，并且
+FileNotFound\-Exception是IOException的子类，ArithmeticException和
+IndexOutOfBoundsException都是runtime异常。注意，base4(), base5()两种
+情况是不允许的！
+
+\emph{为何要作此限制呢？}
+
+考虑如下情形，
+
+\begin{javacode}
+Base base = new Derived();
+try {
+  base.bar();
+} catch(??? e) {
+  // 这里应该捕获何种异常类型呢？
+}
+try {
+  base.foo();
+} catch(IOException e) {
+  // 这里应该捕获的异常类型就很明确了！
 }
 \end{javacode}
 
