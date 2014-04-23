@@ -294,8 +294,6 @@ Class DoubleBraceTest {
 
 注意，如果两个方法参数完全相同而只是返回值不同，则它们不构成overload关系。
 
-\section[static-binding vs dynamic binding]{static-binding vs dynamic binding}
-
 \section[静态方法能否被override]{静态方法能否被override}
 静态方法(类方法)能否被覆盖(override)？
 
@@ -763,6 +761,55 @@ JVM instance的使命就是“运行Java application”，Java application启动
 销毁。Java application和JVM instance是一一对应的，即每个Java application都运行在
 一个“单独”的JVM instance中，如果一个电脑上同时运行了3个Java application，那么将会有
 3个JVM instance同时存在。
+
+\section[Layout of .class file]{Layout of .class file}
+这一节的内容来自\href{http://hxraid.iteye.com/blog/687660}{这个}网页。
+
+\subsection[整体布局]{整体布局}
+.class文件整体布局如图\ref{fig:dotclass}所示。
+
+\begin{figure}
+  \centering
+  % Requires \usepackage{graphicx}
+  \includegraphics[width=.4\textwidth]{picturedir/JavaClassFileLayout.png}\\
+  \caption{.class文件布局}\label{fig:dotclass}
+\end{figure}
+
+
+\subsection[常量池]{常量池}
+
+\subsection[实例解析]{实例解析}
+以如下代码编译出来的class文件，逐个字节分析。
+
+\begin{javacode}
+package hr.test;
+public class ClassTest {
+  private int itemI = 0;
+  private static String itemS = "我们";
+  private final float PI = 3.1415926F;
+
+  public ClassTest() { }
+
+  public int getItemI() {
+    return this.itemI;
+  }
+
+  public static String getItemS() {
+    return itemS;
+  }
+
+  public static void main(String[] args) {
+    ClassTest ct = new ClassTest();
+  }
+}
+\end{javacode}
+
+下面是逐字节分析，每个字节翻译为十进制数字。
+
+\input{srcdir/analyse.txt}
+
+
+\section[static-binding vs dynamic binding]{static-binding vs dynamic binding}
 
 
 \end{document}
