@@ -1,0 +1,20 @@
+﻿\begin{table}
+\centering
+\begin{tabular}{r|c|l}
+Type & Flag\newline(1 byte) & Format \\
+\hline\hline
+CONSTANT\_Utf8 & 1 & <flag> <length> <data>\\
+CONSTANT\_Integer & 3 & <flag> <data>\\
+CONSTANT\_Float & 4 & <flag> <data>\\
+CONSTANT\_Long & 5 & <flag> <data>\\
+CONSTANT\_Double & 6 & <flag> <data>\\
+CONSTANT\_Class & 7 & <flag> <index>\\
+CONSTANT\_String & 8 & <flag> <index>\\
+CONSTANT\_Fieldref & 9 & <flag> <index>\\
+CONSTANT\_Methodref & 10 & <flag> <index>\\
+CONSTANT\_InterfaceMethodref & 11 & <flag> <index>\\
+CONSTANT\_NameAndType & 12 & <flag> <index>\\
+\hline
+\end{tabular}
+\caption{Constant Pool format}\label{tab:constantpooltype}
+\end{table}

@@ -775,8 +775,30 @@ JVM instance的使命就是“运行Java application”，Java application启动
   \caption{.class文件布局}\label{fig:dotclass}
 \end{figure}
 
+class文件由8比特的字节流组成，全部字节流构成15个有意义的条目。
+
+\begin{enumerate}
+  \item magic number，占4个字节(0xCAFEBABE)，表明一个文件是.class文件
+  \item minor version, major version，各占2个字节，主次版本号
+  \item constant pool count，占2个字节，常量池大小
+  \item constant pool，大小不固定，常量池，详见\ref{sec:constantpool}节
+  \item access flag，占2个字节，表明类/接口、访问修饰符、是否抽象类、是否final类
+  \item this class，占2个字节，它是一个常量池索引
+  \item super class，占2个字节，它是一个常量池索引
+  \item interface count, interface，接口数量以及接口的具体信息
+  \item fields count, fields，属性的数量及其具体信息
+  \item method count, methods，方法的数量及其具体信息(包括方法的实现)
+\end{enumerate}
 
 \subsection[常量池]{常量池}
+\label{sec:constantpool}
+常量池是有一个个item组成，就像一个表格。item有如表\ref{tab:constantpooltype}
+所示的这些类型，不同类型有各自存在的format。
+
+\input{srcdir/constant-pool-format.tex}
+
+需要注意的是真正的实体数据是<data>，包括primitive type的<data>以及Unicode字符的<data>，
+其他的索引最终都要落到某个Unicode的<data>处。
 
 \subsection[实例解析]{实例解析}
 以如下代码编译出来的class文件，逐个字节分析。
