@@ -391,6 +391,26 @@ class ExceptionTest {
   \item 子类方法抛出的checked异常必须equal或者derive父类方法抛出的checked异常
 \end{enumerate}
 
+\section[关于this和super]{关于this和super}
+this和super两个关键字值得研究，他们有本质的区别。
+
+\emph{this、super是对象的两个属性}，这种说法是及其错误的！\\
+\emph{父类对象}这一说法也是及其错误的！没有这样的对象！
+
+\subsection[this]{this}
+this并非instance的field，this其实压根儿就不在heap中，this(的值)存在于thread stack中的
+frame中的Local Variable的index 0处，它是JVM自动生成的。
+
+\subsection[super]{super}
+super就更让人大跌眼镜了，super不仅不是instance的field，它其实压根儿“不存在”，super
+在compile时被翻译为this(它们的值相等)，当然如果子类中field、method有隐藏父类field、method的
+情况时，compiler也在此时一并处理了。这不仅让我想起来Clojure里的Reader Macro...
+
+\subsection[没有父类对象]{没有父类对象}
+加载子类时，父类当然是要一并加载的，但是创建子类对象时并不会创建父类对象，而是将
+父类对象的fields一并存储到子类对象中（父类的method存在于Method Area中），并且这些
+属性排列还有一定规则：先排放父类属性，再排放子类属性！
+
 \begin{javacode}
 class Base {
   public void foo() throws IOException { }
@@ -747,6 +767,20 @@ synchronized block之后释放msg.lock，依次重复，直到所有等待线程
 
 
 \part[JVM]{Java Virtual Machine}
+JVM Internal Architecture, see figure \ref{fig:jvm} and \ref{fig:jvm2}.
+\begin{figure}
+  \centering
+  \includegraphics[width=\textwidth]{picturedir/JVMInternalArchitecture.png}\\
+  \caption{JVM Internal Architecture - 1}\label{fig:jvm}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\textwidth]{picturedir/JVMRuntimeDataArea.png}\\
+  \caption{JVM Internal Architecture - 2}\label{fig:jvm2}
+\end{figure}
+
+\section[什么是JVM]{什么是JVM}
 Java Virtural Machine(JVM)可能有三种解释：
 \begin{enumerate}
   \item The abstract specification，即JVM规范
@@ -762,11 +796,11 @@ JVM instance的使命就是“运行Java application”，Java application启动
 一个“单独”的JVM instance中，如果一个电脑上同时运行了3个Java application，那么将会有
 3个JVM instance同时存在。
 
-\section[Layout of .class file]{Layout of .class file}
-这一节的内容来自\href{http://hxraid.iteye.com/blog/687660}{这个}网页。
+\section[class file format]{class file format}
+这一节的内容来自\href{http://hxraid.iteye.com/blog/687660}{这个}网页和JVM Spec 8。
 
 \subsection[整体布局]{整体布局}
-.class文件整体布局如图\ref{fig:dotclass}所示。
+class文件整体布局如图\ref{fig:dotclass}所示，具体数据结构如下(来自JVM Spec 8)，
 
 \begin{figure}
   \centering
@@ -775,16 +809,67 @@ JVM instance的使命就是“运行Java application”，Java application启动
   \caption{.class文件布局}\label{fig:dotclass}
 \end{figure}
 
-class文件由8比特的字节流组成，全部字节流构成15个有意义的条目。
+\begin{javacode}
+ClassFile {
+  u4 magic;
+  u2 minor_version;
+  u2 major_version;
+  u2 constant_pool_count;
+  cp_info constant_pool[constant_pool_count-1];
+  u2 access_flags;
+  u2 this_class;
+  u2 super_class;
+  u2 interfaces_count;
+  u2 interfaces[interfaces_count];
+  u2 fields_count;
+  field_info fields[fields_count];
+  u2 methods_count;
+  method_info methods[methods_count];
+  u2 attributes_count;
+  attribute_info attributes[attributes_count];
+}
+\end{javacode}
 
+进一步，各种info数据结构，
+
+\begin{javacode}
+cp_info {
+  u1 tag;
+  u1 info[];
+}
+
+field_info {
+  u2 access_flags;
+  u2 name_index;
+  u2 descriptor_index;
+  u2 attributes_count;
+  attribute_info attributes[attributes_count];
+}
+
+method_info {
+  u2 access_flags;
+  u2 name_index;
+  u2 descriptor_index;
+  u2 attributes_count;
+  attribute_info attributes[attributes_count];
+}
+
+attribute_info {
+  u2 attribute_name_index;
+  u4 attribute_length;
+  u1 info[attribute_length];
+}
+\end{javacode}
+
+class文件由8比特的字节流组成，全部字节流构成15个有意义的条目。
 \begin{enumerate}
-  \item magic number，占4个字节(0xCAFEBABE)，表明一个文件是.class文件
-  \item minor version, major version，各占2个字节，主次版本号
-  \item constant pool count，占2个字节，常量池大小
+  \item magic number，0xCAFEBABE，表明一个文件是.class文件
+  \item minor version, major version，主次版本号
+  \item constant pool count，常量池大小
   \item constant pool，大小不固定，常量池，详见\ref{sec:constantpool}节
-  \item access flag，占2个字节，表明类/接口、访问修饰符、是否抽象类、是否final类
-  \item this class，占2个字节，它是一个常量池索引
-  \item super class，占2个字节，它是一个常量池索引
+  \item access flag，表明类/接口、访问修饰符、是否抽象类、是否final类
+  \item this class，它是一个常量池索引
+  \item super class，它是一个常量池索引
   \item interface count, interface，接口数量以及接口的具体信息
   \item fields count, fields，属性的数量及其具体信息
   \item method count, methods，方法的数量及其具体信息(包括方法的实现)
@@ -792,13 +877,73 @@ class文件由8比特的字节流组成，全部字节流构成15个有意义的
 
 \subsection[常量池]{常量池}
 \label{sec:constantpool}
-常量池是有一个个item组成，就像一个表格。item有如表\ref{tab:constantpooltype}
-所示的这些类型，不同类型有各自存在的format。
+常量池是由一个个item组成，就像一个表格，所有item总共有如下不同的类型，
+每一种类型都由一个tag(1字节的常数)来标识，各种不同类型的数据结构定义
+如下(来自JVM Spec 8，另外还有几种增加的类型没有列出)，
+
+\begin{javacode}
+// 除了基本类型和UTF8类型存在“实际”数据以外，其他都是保存index而已！
+CONSTANT_Class_info {
+  u1 tag;
+  u2 name_index;
+}
+CONSTANT_Fieldref_info {
+  u1 tag;
+  u2 class_index;
+  u2 name_and_type_index;
+}
+CONSTANT_Methodref_info {
+  u1 tag;
+  u2 class_index;
+  u2 name_and_type_index;
+}
+CONSTANT_InterfaceMethodref_info {
+  u1 tag;
+  u2 class_index;
+  u2 name_and_type_index;
+}
+CONSTANT_String_info {
+  u1 tag;
+  u2 string_index;
+}
+CONSTANT_Integer_info {
+  u1 tag;
+  u4 bytes; // int占4个字节
+}
+CONSTANT_Float_info {
+  u1 tag;
+  u4 bytes; // float占4个字节
+}
+CONSTANT_Long_info {
+  u1 tag;
+  u4 high_bytes; // long占8个字节
+  u4 low_bytes;
+}
+CONSTANT_Double_info {
+  u1 tag;
+  u4 high_bytes; // double占8个字节
+  u4 low_bytes;
+}
+CONSTANT_NameAndType_info {
+  u1 tag;
+  u2 name_index;
+  u2 descriptor_index;
+}
+CONSTANT_Utf8_info {
+  u1 tag;
+  u2 length;
+  u1 bytes[length]; // 所有的“符号”都以UTF8形式存在
+}
+\end{javacode}
+
+这些类型的tag值如表\ref{tab:constantpooltype}所示。
 
 \input{srcdir/constant-pool-format.tex}
 
-需要注意的是真正的实体数据是<data>，包括primitive type的<data>以及Unicode字符的<data>，
-其他的索引最终都要落到某个Unicode的<data>处。
+需要注意的是真正数据存在于各种基本类型以及UTF8类型中，
+其他的索引最终都要落到某个UTF8的数据处，这些数据即为
+“符号”，如类的全限定名称，方法的完整签名等，运行时的
+“符号解析”解析的就是这里的符号，其实就是一些字符串而已。
 
 \subsection[实例解析]{实例解析}
 以如下代码编译出来的class文件，逐个字节分析。

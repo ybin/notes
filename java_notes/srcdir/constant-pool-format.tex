@@ -1,19 +1,19 @@
 ﻿\begin{table}
 \centering
-\begin{tabular}{r|c|l}
-Type & Flag\newline(1 byte) & Format \\
+\begin{tabular}{l|l}
+Tag of Type & Value \\
 \hline\hline
-CONSTANT\_Utf8 & 1 & <flag> <length> <data>\\
-CONSTANT\_Integer & 3 & <flag> <data>\\
-CONSTANT\_Float & 4 & <flag> <data>\\
-CONSTANT\_Long & 5 & <flag> <data>\\
-CONSTANT\_Double & 6 & <flag> <data>\\
-CONSTANT\_Class & 7 & <flag> <index>\\
-CONSTANT\_String & 8 & <flag> <index>\\
-CONSTANT\_Fieldref & 9 & <flag> <index>\\
-CONSTANT\_Methodref & 10 & <flag> <index>\\
-CONSTANT\_InterfaceMethodref & 11 & <flag> <index>\\
-CONSTANT\_NameAndType & 12 & <flag> <index>\\
+CONSTANT\_Utf8 & 1 \\
+CONSTANT\_Integer & 3 \\
+CONSTANT\_Float & 4 \\
+CONSTANT\_Long & 5 \\
+CONSTANT\_Double & 6 \\
+CONSTANT\_Class & 7 \\
+CONSTANT\_String & 8 \\
+CONSTANT\_Fieldref & 9 \\
+CONSTANT\_Methodref & 10 \\
+CONSTANT\_InterfaceMethodref & 11 \\
+CONSTANT\_NameAndType & 12 \\
 \hline
 \end{tabular}
 \caption{Constant Pool format}\label{tab:constantpooltype}
