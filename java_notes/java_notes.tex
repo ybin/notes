@@ -200,6 +200,42 @@ class Test {
 
 啊？那岂不是说：类的private成员可以被外部类(not outer class)访问？
 
+是的，只不过这里的情形比较特殊，看下面的代码，
+
+\begin{javacode}
+class OuterClass {
+  private int out = new InnerClass().in;
+  class InnerClass {
+    private int in = 0;
+  }
+}
+\end{javacode}
+
+分别反编译OuterClass.class和OuterClass\$InnerClass.class，
+在OuterClass.class中可以看到这样的代码：
+
+\begin{javacode}
+13: invokestatic #17; //Method com/example/javademo/OuterClass$InnerClass
+                  .access$0:(Lcom/example/javademo/OuterClass$InnerClass;)I
+16: putfield #21; //Field out:I
+\end{javacode}
+
+这便是new InnerClass().in编译之后的代码。再看OuterClass\$InnerClass.class
+的反编译结果：
+
+\begin{javacode}
+static int access$0(com.example.javademo.OuterClass$InnerClass);
+  Code:
+    Stack=1, Locals=1, Args_size=1
+    0: aload_0
+    1: getfield #17; //Field in:I
+    4: ireturn
+\end{javacode}
+
+这个静态函数其实只是把属性"in"的值返回而已，这个静态函数叫做sythetic函数，
+也叫做bridge函数。进一步查看.class的二进制数据(用十六进制编辑器)，可以看到
+该函数的access\_flag设置为10 08，即ACC\_SYNTHETIC | ACC\_STATIC。
+
 
 \section[Double braces initialization]{Double braces initialization}
 要讲明白双大括号初始化就要先了解什么是instance initializer和static initializer，
