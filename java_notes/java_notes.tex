@@ -801,6 +801,28 @@ class Notifier implements Runnable {
 synchronized block之后释放msg.lock，依次重复，直到所有等待线程
 都完成这个过程，整个同步过程也就结束了。
 
+\section[Java Memory Model]{Java Memory Model}
+Java Memory Model(JMM)，即Java内存模型，是存在于Java语言层面的内容，
+并不涉及到JVM，JMM是用于Java线程间通讯的一套规则，目的是防止线程间
+出现数据竞争。所谓的数据竞争指的是：如果A操作、B操作同时需要某些数据，
+并且A、B之间存在影响（单向或者相互影响），但是并没有任何手段可以
+保证它们之间的执行顺序，那么就说A、B之间存在数据竞争。如A读取某个值
+而B写入某个值，但是没有任何手段可以保证它们之间的顺序，那么它们存在
+数据竞争。
+
+为此JSR-133制定了一套规则叫做happens-before规则，以此避免数据竞争。
+但是需要注意的是happens-before并不仅仅是指的操作顺序，它更主要的是
+明确“可见性”，如其中有一条规则如下：
+
+\emph{对同一个monitor的unlock必须发生在其他线程lock之前}
+
+这个很好理解，先释放锁再获取锁，但是这里不仅仅指的是操作顺序，它还要
+保证，unlock之前的monitor监视的操作结果(如synchronize block里的操作)
+必须能够被lock之后的线程看到，也就是说
+如果Action A happens-before Action B，那么A的操作结果必须对B是
+可见的，也就是说A的操作结果要写入主内存，而B在操作之前必须先从主内存
+中同步数据到它的工作内存(e.g. CPU Cache)。
+
 
 \part[JVM]{Java Virtual Machine}
 JVM Internal Architecture, see figure \ref{fig:jvm} and \ref{fig:jvm2}.
