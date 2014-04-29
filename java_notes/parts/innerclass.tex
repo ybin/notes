@@ -1,0 +1,88 @@
+﻿\section[Inner Class]{Inner Class}
+Java中，Inner class的field/method相当于Outer class的field/method，
+只不过要通过Inner class或Inner class的对象对其进行访问而已。
+
+\subsection[内部类的可见性]{内部类的可见性}
+内部类的field/method跟外部类的field/method本质上是一样的，只是访问
+方式不同而已，所以内部类和外部类相互之间是“完全透明”的。
+
+\subsection[Create object of Inner class ]{Create object of Inner class}
+由于non-static inner class依附于outer class而存在，所以创建这种类型的
+对象时必须有outer class对象存在才行；而对于static inner class则无此限制。
+
+\begin{javacode}
+class Outer {
+  private int out = 42;
+
+  // non-static inner class
+  public class InstanceInner {
+    private int instanceInner = out;
+  }
+
+  // static inner class
+  public static class StaticInner {
+    private static int staticInner;
+  }
+
+  private void out() {
+    // access 'private' field of inner class
+    int i = new InstanceInner().instanceInner;
+    int k = StaticInner.staticInner;
+  }
+}
+
+class Test {
+  void test() {
+    Outer outer = new Outer();
+    // non-static内部类依附于外部类而存在，所以实例化时必须存在外部类对象
+    InstanceInner iInner = outer.new InstanceInner();
+    // static内部类则可直接实例化，不需外部类对象存在
+    StaticInner sInner = new Outer.StaticInner();
+  }
+}
+\end{javacode}
+
+\subsection[Inner class for JVM]{Inner class for JVM}
+在JVM看来，inner class是如何表示的呢？
+
+\emph{在JVM中，根本没有inner class这个概念！一切都是顶级类！}
+
+只是内部类最终编译成class文件时，其名称是...\$...class这样的形式。
+
+啊？那岂不是说：类的private成员可以被外部类(not outer class)访问？
+
+是的，只不过这里的情形比较特殊，看下面的代码，
+
+\begin{javacode}
+class OuterClass {
+  private int out = new InnerClass().in;
+  class InnerClass {
+    private int in = 0;
+  }
+}
+\end{javacode}
+
+分别反编译OuterClass.class和OuterClass\$InnerClass.class，
+在OuterClass.class中可以看到这样的代码：
+
+\begin{javacode}
+13: invokestatic #17; //Method com/example/javademo/OuterClass$InnerClass
+                  .access$0:(Lcom/example/javademo/OuterClass$InnerClass;)I
+16: putfield #21; //Field out:I
+\end{javacode}
+
+这便是new InnerClass().in编译之后的代码。再看OuterClass\$InnerClass.class
+的反编译结果：
+
+\begin{javacode}
+static int access$0(com.example.javademo.OuterClass$InnerClass);
+  Code:
+    Stack=1, Locals=1, Args_size=1
+    0: aload_0
+    1: getfield #17; //Field in:I
+    4: ireturn
+\end{javacode}
+
+这个静态函数其实只是把属性"in"的值返回而已，这个静态函数叫做sythetic函数，
+也叫做bridge函数。进一步查看.class的二进制数据(用十六进制编辑器)，可以看到
+该函数的access\_flag设置为10 08，即ACC\_SYNTHETIC | ACC\_STATIC。

@@ -1,0 +1,111 @@
+﻿\section[Enumeration vs Iterator]{Enumeration vs Iterator}
+Enumeration和Iterator都是用于遍历集合，Enumeration主要用于遍历
+Vector、HashTable，而Iterator用于遍历其他集合。两者的主要区别是：
+Enumeration不可以在遍历过程中删除元素，而Iterator则可以，
+比较Enumeration和Iterator的定义就可以明确这一点。
+
+下面是Enumeration的定义，
+
+\begin{javacode}
+public interface Enumeration<E> {
+  boolean hasMoreElements();
+  E nextElement();
+}
+\end{javacode}
+
+下面是Iterator的定义，
+
+\begin{javacode}
+public interface Iterator<E> {
+  boolean hasNext();
+  E next();
+  void remove();
+}
+\end{javacode}
+
+另附使用实例(Vector既可以Enumeration遍历也可用Iterator遍历)，
+
+\begin{javacode}
+Vector<String> v = new Vector<String>();
+v.add("A");
+v.add("B");
+v.add("C");
+
+// 使用Enumeration遍历
+// 'for' version
+String elem;
+for(Enumeration<String> e = v.elements(); e.hasMoreElements(); ) {
+  elem = e.nextElement();
+  System.out.println(elem);
+}
+// 'while' version
+Enumeration<String> e = v.elements();
+while(e.hasMoreElements()) {
+  elem = e.nextElement();
+  System.out.println(elem);
+}
+
+// 使用Iterator遍历
+// 'for' version
+String cur;
+for(Iterator<String> iter = v.iterator(); iter.hasNext(); ) {
+  cur = iter.next();
+  System.out.println(cur);
+  if("B".equals(cur)) {
+    iter.remove();
+  }
+}
+// 'while' version
+Iterator<String> iter = v.iterator();
+while(iter.hasNext()) {
+  cur = iter.next();
+  System.out.println(cur);
+  if("B".equals(cur)) {
+    iter.remove();
+  }
+}
+\end{javacode}
+
+\section[遍历Map]{遍历Map}
+遍历Map时需要从collection的视角去看Map。
+
+\begin{javacode}
+public void operateMap() {
+  HashMap<String, String> info = new HashMap<String, String>() {
+    private static final long serialVersionUID = 1L;
+    {
+      put("John", "42");
+      put("Eric", "43");
+      put("Waston", "44");
+    }
+  };
+
+  /*
+   * Collection<E> interface extends Iterable<T> interface,
+   * so all Collection including Set<E>, List<E>, Queue<E>
+   * can get an Iterator via iterator() method.
+   */
+
+  // 遍历Map - 1
+  Iterator<Entry<String, String>> entryIter = info.entrySet().iterator();
+  while(entryIter.hasNext()) {
+    Entry<String, String> entry = entryIter.next();
+    System.out.println("key: " + entry.getKey() + ", value: " + entry.getValue());
+  }
+
+  // 遍历Map - 2
+  Iterator<String> keyIter = info.keySet().iterator();
+  while(keyIter.hasNext()) {
+    String key = keyIter.next();
+    String value = info.get(key);
+    System.out.println("key: " + key + ", value: " + value);
+  }
+
+  // 遍历Map - 3，遍历Value
+  Iterator<String> valueIter = info.values().iterator();
+  while(valueIter.hasNext()) {
+    String value = valueIter.next();
+    System.out.println("value: " + value);
+  }
+}
+\end{javacode}

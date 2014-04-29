@@ -1,0 +1,185 @@
+﻿\section[class loader]{class loader}
+Java的class loader分为两种：
+\begin{enumerate}
+  \item built-in class loader: 内置的类加载器只有一个，叫做bootstrap class loader
+    \begin{itemize}
+      \item Bootstrap: 加载[JRE]\bs lib\bs rt.jar和-Xbootclasspath指定的目录
+    \end{itemize}
+  \item user-defined class loader: JDK中预先提供两个用户自定义类加载器：
+    \begin{itemize}
+      \item ExtClassLoader: 加载[JRE]\bs lib\bs ext\*.jar和-Djava.ext.dirs指定的目录
+      \item AppClassLoader: CLASSPATH环境变量和-Djava.class.path指定的目录
+    \end{itemize}
+\end{enumerate}
+Bootstrap内置于JVM实现，由C++部分实现，所以没有Java Class对象与之对应(null与之对应)，
+用户自定义的类加载器都有Java层Class对象与之对应。Java提供ClassLoader类，所有用户自定义的
+加载器都继承自该类，如图\ref{fig:classloadertree}所示。
+% class inheret tree
+\begin{figure}
+  \centering
+  \begin{tikzpicture}[<-,>=stealth',level/.style={sibling distance = 4cm,level distance=1.5cm}]
+  \node {ClassLoader}
+  child {
+    node {SecureClassLoader}
+    child {
+      node {URLClassLoader}
+      child {
+        node {ExtClassLoader}
+      }
+      child {
+        node {AppClassLoader}
+      }
+    }
+  };
+  \end{tikzpicture}
+  \caption{JDK中自定义类的(OOP)继承体系}\label{fig:classloadertree}
+\end{figure}
+
+\subsection[DIY class loader]{DIY class loader}
+自定义class loader只需继承ClassLoader类即可，该类中设计到自定义类加载器的有
+如下这些方法：\\
+\begin{javacode}
+public Class<?> loadClass(String name)
+  throws ClassNotFoundException { }
+protected Class<?> findClass(String name)
+  throws ClassNotFoundException { }
+protected final Class<?> defineClass(String name, byte[] b, int off, int len,
+  ProtectionDomain protectionDomain) throws ClassFormatError { }
+
+protected synchronized Class<?> loadClass(String name, boolen resolve)
+  throws ClassNotFoundException { }
+public final ClassLoader getParent(){ }
+protected final Class<?> findLoadedClass(String name) { }
+protected final void resolveClass(Class<?> c) { }
+\end{javacode}
+
+其中，loadClass()会实现代理模式，详见第\ref{sec:delegationmodel}节，
+所以不要轻易override这个方法，自定义class loader时只需override findClass()，
+标准的做法是这样的：\\
+\begin{javacode}
+class MyClassLoader extends ClassLoader {
+
+  public Class findClass(String name) {
+    byte[] b = loadClassData(name);
+    return defineClass(name, b, 0, b.length);
+  }
+
+  private byte[] loadClassData(String name) {
+    // load the class data from file system, network etc.
+  }
+}
+\end{javacode}
+
+下面是一个完整的例子，
+
+\begin{javacode}
+class MyClassLoader extends ClassLoader {
+  private static String prefix = "path/to/project/";
+
+  public MyClassLoader() { // 使用AppClassLoader作为其parent
+    super();
+  }
+  public MyClassLoader(ClassLoader parent) {
+    super(parent); // if parrent == null then use bootstrap class loader as parent
+  }
+
+  @Override
+  public Class findClass(String name) throws ClassNotFoundException {
+    System.out.println("can not load class, not try finding: " + name);
+    byte[] data = null;
+    try {
+      data = getClassData(name);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return defineClass(name, data, 0, data.length);
+  }
+
+  private byte[] getClassData(String name) throws IOException {
+    File f = new File(prefix + convertPath(name) + ".class");
+    FileInputStream input = new FileInputStream(f);
+    byte[] data = new byte[(int) f.length()];
+    input.read(data);
+    input.close();
+    return data;
+  }
+
+  private String convertPath(String dotPath) {
+    StringBuilder builder = new StringBuilder();
+    for(String s : dotPath.split("\\.")) {
+      builder.append(s + "/");
+    }
+    return builder.subSequence(0, builder.length()-1).toString();
+  }
+}
+// test
+void testClassLoader() {
+  MyClassLoader loader1 = new MyClassLoader(); // use AppClassLoader as parent
+  Class c1 = loader1.loadClass("com.example.javademo.ThisSuper");
+  ThisSuper o1 = (ThisSuper) c1.newInstance();
+
+  MyClassLoader loader2 = new MyClassLoader(null); // use Bootstrap as parent
+  Class c2 = loader2.loadClass("com.example.javademo.ThisSuper");
+
+  System.out.println(c1 == c2); // false
+}
+\end{javacode}
+
+\subsection[parent delegation model]{parent delegation model}
+\label{sec:delegationmodel}
+Java管理这些类加载器时采用delegation model(代理模式)，每个loader都有一个parent属性
+(定义在ClassLoader类中)，load class时首先使用parent进行加载，如果无法加载再自行加载，
+
+\begin{javacode}
+// implementation of loadClass() in ClassLoader
+...
+// First, check if the class has already been loaded
+Class c = findLoadedClass(name);
+if (c == null) {
+  try {
+    // Second, try to delegate class-loading to 'parent'
+    if (parent != null) {
+      c = parent.loadClass(name, false);
+    } else {
+      c = findBootstrapClass0(name);
+    }
+  } catch (ClassNotFoundException e) {
+    // finally, find class using findClass()
+    c = findClass(name);
+  }
+}
+...
+\end{javacode}
+
+注意，这是个递归调用，最终的结果就是从child到parent进行扫描，如果没有找到class，
+就再从parent到child依次调用findClass()，这是一个从child到parent然后再返回到child
+的过程，中间任何一步找到class就结束整个流程。
+
+为何要搞一个代理模式处理呢？为了安全！
+
+代理模式可以保证优先从Java Core API中加载类，如java.lang.String类，走到Bootstrap
+的时候已经找到了，所以即使用户自己重新定义String类，也不会被用到，这就保证了
+核心库不被恶意替换掉。
+
+但是，如果重写loadClass()函数的话就可能破坏代理模式，如Tomcat中的class loader
+加载类的顺序正好跟这里的代理模式相反，不过在defineClass()的时候会有package检查，
+如java.*这样的package是无法通过defineClass()重新定义的，而defineClass()是final的，
+这就保证了核心库的安全性，除非用户不使用defineClass()而自己搞一套类定义机制出来
+(可能吗？)。
+
+\subsection[namespace]{namespace}
+任何一个class都是由某一个class loader加载到JVM中的，在JVM中，一个类的唯一性并不
+仅仅是靠package来保证，而是package和class loader一同保证，即不同class loader
+完全可能加载同一个class到JVM，形成两个不同的class对象，这种机制就叫做namespace。
+
+那么namespace是如何构成的呢？一个class loader构成一个namespace吗？No，这会造成
+重复加载，想象一下一个class loader中就有一个String类，太浪费了！
+
+答案是利用delegation model构成namespace，在HotSpot中，没加载一个类JVM内部都会
+把它缓存起来，JVM内部维护一个巨大的哈希表：
+
+$hash\;table: classname+loader \stackrel{hash}{\longrightarrow} class\;object$
+
+加上代理模式，每个child loader都可以看到parent加载的class object，于是一个
+class loader所能加载的class连同其parent所能加载的class就构成了一个namespace，
+不同namespace之间无法相互访问，就像无法访问object(in heap)的private field一样。

@@ -1,0 +1,67 @@
+﻿\section[Polymorphism - 多态]{Polymorphism - 多态}
+在Java中(其他OOP中也是如此)，Polymorphism(多态)是一个概念，它用于method的定义，
+有两种表现形式：override和overload。两种多态形式各有不同的限定条件。
+
+\subsection[override]{override}
+父类方法和子类方法构成override必须满足如下条件：
+
+\begin{enumerate}
+  \item 子类方法和父类方法的name、parameters、return type必须完全一样
+  \item 子类方法不能缩小(reduce)父类方法的访问权限
+  \item 子类方法不能扩大或者改变父类方法的异常范围，详见第\ref{sec:exceptions-in-override}节
+\end{enumerate}
+
+注意：final修饰的方法不能被override。
+
+\subsection[overload]{overload}
+位于同一个类中或者分别位于父类和子类中的两个方法，构成overload必须满足如下条件：
+
+\begin{enumerate}
+  \item parameters(包括参数类型、个数、顺序)不能完全相同
+\end{enumerate}
+
+注意，如果两个方法参数完全相同而只是返回值不同，则它们不构成overload关系。
+
+\section[静态方法能否被override]{静态方法能否被override}
+静态方法(类方法)能否被覆盖(override)？
+
+这个问题本身就是错误的！
+
+override被设计用于instance methods，而不是用于static methods。
+类加载之后，static method放置在Method Area，因此每个类，不论子类父类，都有自己
+单独的static field和static method，相互之间没有任何关系。
+
+\begin{javacode}
+class Base {
+  public static void staticPrint() {
+    System.out.println("Base static method");
+  }
+  public void instancePrint() {
+    System.out.println("Base instance method");
+  }
+}
+
+class Derived extends Base {
+  public static void staticPrint() {
+    System.out.println("Derived static method");
+  }
+  @Override
+  public void instancePrint() {
+    System.out.println("Derived instance method");
+  }
+}
+
+Base base = new Derived();
+// result: Base static method
+base.staticPrint();
+// result: Derived nstance method
+base.instancePrint();
+// result: Derived static method
+((Derived) base).staticPrint();
+\end{javacode}
+
+需要注意的是：static method是静态绑定的，即在编译期就绑定完毕，
+因此base.staticPrint()会被绑定到Base类的static method；
+而instance method是动态绑定的，即在运行期才会寻找instance数据
+(位于Heap中，base的instance数据根据Derived类实例化)，
+查找method的bytecode然后绑定。

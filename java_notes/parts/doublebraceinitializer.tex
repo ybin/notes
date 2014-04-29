@@ -1,0 +1,68 @@
+﻿\section[Double braces initialization]{Double braces initialization}
+要讲明白双大括号初始化就要先了解什么是instance initializer和static initializer，
+该部分Java语言规范在\href{http://docs.oracle.com/javase/specs/jls/se7/html/jls-8.html#jls-8.6}{JLS 8.6}。
+
+\begin{javacode}
+class Initializer {
+
+  // executed when an instance of the class is created
+  static {
+    System.out.println("static initializer");
+  }
+
+  // executed when the class is initialized
+  {
+    System.out.println("instance initializer");
+  }
+
+  public Initializer() {
+    System.out.println("constructor");
+  }
+
+  void initialize() {
+    System.out.println("instance method");
+  }
+}
+\end{javacode}
+
+执行顺序：static initializer, instance initializer, constructor。
+
+Java支持匿名内部类(Inner anonymous class)，既然是匿名的，就无法在其他地方引用，
+因此也就只能在创建类的同时创建对象(毕竟，类不用来创建对象还能干啥呢)，内层的
+大括号即为instance initializer。
+
+于是乎，有了下面的代码，
+
+\begin{javacode}
+package com.example.javademo;
+Class DoubleBraceTest {
+  void test() {
+    // 初始化HashMap
+    HashMap<String, String> hm = new HashMap<String, String>() {
+      // instance initializer(对比static initializer)
+      {
+        // 匿名内部类的this指向父类(即HashMap)对象
+        this.put("k1", "v1");
+        this.put("k2", "v2");
+        this.put("k3", "v3");
+      }
+    }
+
+    // 任意类都可以，Base是任意自定义类
+    Base b = new Base() {
+      {
+        setName(Inner anonymous class, instance initializer.);
+      }
+    }
+
+    // result: super class: java.util.HashMap
+    System.out.println("super class: " + hm.getClass().getSuperclass().getName());
+    // result: class name: com.example.javademo.DoubleBraceTest$2
+    System.out.println("class name: " + hm.getClass().getName());
+  }
+}
+\end{javacode}
+
+注意：double braces initialization是不鼓励使用的，因为它本质上是定义了一个
+匿名内部类，因此实例化的instance会一直保存对外部类(DoubleBraceTest类)实例
+的引用，并且这也会让类加载器管理更多的类。

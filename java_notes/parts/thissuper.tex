@@ -1,0 +1,72 @@
+﻿\section[关于this和super]{关于this和super}
+this和super两个关键字值得研究，他们有本质的区别。
+
+\emph{this、super是对象的两个属性}，这种说法是及其错误的！\\
+\emph{父类对象}这一说法也是及其错误的！没有这样的对象！
+
+\subsection[this]{this}
+this并非instance的field，this其实压根儿就不在heap中，this(的值)存在于thread stack中的
+frame中的Local Variable的index 0处，它是JVM自动生成的。
+
+\subsection[super]{super}
+super就更让人大跌眼镜了，super不仅不是instance的field，它其实压根儿“不存在”，super
+在compile时被翻译为this(它们的值相等)，当然如果子类中field、method有隐藏父类field、method的
+情况时，compiler也在此时一并处理了。这不仅让我想起来Clojure里的Reader Macro...
+
+\subsection[没有父类对象]{没有父类对象}
+加载子类时，父类当然是要一并加载的，但是创建子类对象时并不会创建父类对象，而是将
+父类对象的fields一并存储到子类对象中（父类的method存在于Method Area中），并且这些
+属性排列还有一定规则：先排放父类属性，再排放子类属性！
+
+\begin{javacode}
+class Base {
+  public void foo() throws IOException { }
+  public void bar() throws IOException { }
+  public void base1() throws IOException { }
+  public void base2() throws ArithmeticException { }
+  public void base3() throws IOException { }
+  public void base4() throws ArithmeticException { }
+  public void base5() { }
+}
+
+class Derived extends Base {
+  @Override
+  public void foo() throws FileNotFoundException { } // allowed
+  @Override
+  public void bar() throws SQLException { } // NOT allowed
+
+  @Override
+  public void base1() { } // allowed, do not throw any exception
+  @Override
+  public void base2() throws IndexOutOfBoundsException { } // allowed
+  @Override
+  public void base3() throws IndexOutOfBoundsException { } // allowed
+  @Override
+  public void base4() throws IOException { } // NOT allowed
+  @Override
+  public void base5() throws IOException { } // NOT allowed
+}
+\end{javacode}
+
+IOException、FileNotFoundException、SQLException都是checked异常，并且
+FileNotFound\-Exception是IOException的子类，ArithmeticException和
+IndexOutOfBoundsException都是runtime异常。注意，base4(), base5()两种
+情况是不允许的！
+
+\emph{为何要作此限制呢？}
+
+考虑如下情形，
+
+\begin{javacode}
+Base base = new Derived();
+try {
+  base.bar();
+} catch(??? e) {
+  // 这里应该捕获何种异常类型呢？
+}
+try {
+  base.foo();
+} catch(IOException e) {
+  // 这里应该捕获的异常类型就很明确了！
+}
+\end{javacode}

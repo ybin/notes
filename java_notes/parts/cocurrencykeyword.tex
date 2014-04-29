@@ -1,0 +1,227 @@
+﻿\section[keyword: join]{keyword: join}
+join用于等待其他线程结束，如otherThread.join()，当前线程将会等待
+otherThread结束后才会退出。
+
+实例：
+
+\begin{javacode}
+public class JoinTest {
+  public static void main(String[] args) {
+    Thread t1 = new Thread(new MyRunnable(), "Thread-1");
+    Thread t2 = new Thread(new MyRunnable(), "Thread-2");
+
+    t1.start();
+    t2.start();
+    System.out.println("Main thread end.");
+  }
+}
+
+class MyRunnable implements Runnable {
+  String name = Thread.currentThread().getName();
+  @Override
+  public void run() {
+    System.out.println("wtf: " + name);
+    try {
+      Thread.sleep(3000);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
+    System.out.println(">>> " + Thread.currentThread().getName());
+  }
+}
+\end{javacode}
+
+注意：wtf那一行输出的是“main”，即name变量保有的是主线程的名字，WTF!
+
+可能的输出，
+
+\begin{bashcode}
+Main thread end.
+wtf: main
+wtf: main
+>>> Thread-1
+>>> Thread-2
+\end{bashcode}
+
+\section[keyword: synchronized]{keyword: synchronized}
+'synchronized'关键字用于锁住资源，从而保证多线程环境下，同一时刻只有一个
+线程能拥有锁住的资源，资源用完之后释放锁。
+
+有两种synchronized方式：
+\begin{enumerate}
+\item synchronized block: 只锁住该block里的资源
+\item synchronized method: 锁住整个对象；如果是static方法，就锁住该Class
+\end{enumerate}
+另外还需注意：
+\begin{itemize}
+\item synchronized关键字“不能”用于构造函数和变量
+\item synchronized影响效率，在真正必须的时候才使用
+\item synchronized只在同一个JVM实例上有效
+\item synchronized不要用于non-private的对象，以及有getter函数的private对象
+\item synchronized不要用于常量池中的对象，如String对象
+\end{itemize}
+推荐使用方法：\\
+\begin{javacode}
+// dummy object variable for synchronization
+private Object mutex = new Object();
+int count = 0;
+synchronized(mutex) {
+    count++;
+}
+\end{javacode}
+
+注意：synchronized需要程序员自觉才行，如果在某个线程程序员没有
+使用synchronized而是直接就count++，此时synchronized就被人为的绕过
+去了，尤其是用继承Thread类的方法创建线程时，这种情况更容易发生。
+
+不要这样用：\\
+\begin{javacode}
+public class MyObject {
+    // will lock on the object's monitor
+    public synchronized void doSomething() { /* do something...*/ }
+
+    MyObject myObject = new Myobject();
+    synchronized(myObject) {
+        while(true) {
+            Thread.sleep(Integer.MAX_VALUE);
+        }
+    }
+}
+\end{javacode}
+
+两个synchronized锁住的是同一个monitor，所以一旦第二个执行，
+doSomething()将不可能再执行，导致死锁和DoS(Denial of Service)。
+
+不要这样用：\\
+\begin{javacode}
+public class MyObject {
+    public Object lock = new Object();
+    public void doSomething() {
+        synchronized(lock) {
+            // do something...
+        }
+    }
+}
+
+MyObject myObject = new MyObject();
+// 修改lock的引用，doSomething()函数有可能并发执行，
+// 同理，有getter函数的private lock也是一样的
+myObject.lock = new Object();
+\end{javacode}
+
+
+
+\section[keyword: wait, notify and notifyAll]{keyword: wait, notify and notifyAll}
+wait, notify, notifyAll三个函数用于多线程竞争某个资源的情况，这三个函数在调用
+之前都必须先取得“竞态资源”的monitor才行，所以这三个函数必须放到sychronized中
+才行。
+
+下面是一个生产者、消费者的实例。
+
+测试用例：
+
+\begin{javacode}
+public class WaitNotifyTest {
+  public static void main(String[] args) {
+    Message msg = new Message("Init Message");
+    new Thread(new Waiter(msg), "waiter1").start();
+    new Thread(new Waiter(msg), "waiter2").start();
+
+    new Thread(new Notifier(msg), "notifier").start();
+    System.out.println("Main thread end.");
+  }
+}
+\end{javacode}
+
+竟态资源：
+
+\begin{javacode}
+class Message {
+  private String msg;
+
+  public Message(String str) {
+    this.msg = str;
+  }
+  public String getMsg() {
+    return msg;
+  }
+  public void setMsg(String str) {
+    this.msg = str;
+  }
+}
+\end{javacode}
+
+消费者：
+
+\begin{javacode}
+class Waiter implements Runnable {
+  private Message msg;
+
+  public Waiter(Message m) {
+    this.msg = m;
+  }
+  @Override
+  public void run() {
+    String name = Thread.currentThread().getName();
+    synchronized (msg) {
+      try {
+        System.out.println("*" + name + "*" + " waiting msg at: "
+                           + System.currentTimeMillis());
+        msg.wait();
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+      System.out.println("*" + name + "*" + " got msg at: "
+                         + System.currentTimeMillis());
+      // process the message now
+      System.out.println("*" + name + "*" + " process msg: " + msg.getMsg());
+    }
+  }
+}
+\end{javacode}
+
+生产者：
+
+\begin{javacode}
+class Notifier implements Runnable {
+  private Message msg;
+
+  public Notifier(Message msg) {
+    this.msg = msg;
+  }
+  @Override
+  public void run() {
+    String name = Thread.currentThread().getName();
+    System.out.println("*" + name + "*" + " started.");
+    try {
+      Thread.sleep(1000);
+      synchronized (msg) {
+        msg.setMsg("\"This is " + "*" + name + "*'s" + " msg.\"");
+        //msg.notify();
+        msg.notifyAll();
+      }
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
+  }
+}
+\end{javacode}
+
+注意，notifyAll会把所有等待的线程都唤醒，但是无法确定这些线程
+的执行顺序，每次只能执行一个，而notify函数只能唤醒一个，随机的
+一个。
+
+执行顺序是这样的：
+
+线程A获得msg.lock之后进入synchronized block，调用msg.wait()
+阻塞A线程，然后释放msg.lock（并未退出wait()方法，在synchronized中，
+没有lock就寸步难行）。线程B获得msg.lock之后进入synchronized block，
+调用msg.notify()/msg.notifyAll()，通知线程A或者其他等待msg.lock
+的线程，等待线程被唤醒，但是没有msg.lock仍然无法运行，之后线程B
+继续执行synchronized block剩余的内容，执行完之后释放msg.lock，
+正在等待的线程（如线程A）会取得msg.lock然后完成wait()方法，进而
+完成synchronized block的剩余内容，之后释放msg.lock。如果线程B
+调用的是msg.notifyAll()并且还有其他等待线程的话，其他等待线程中的
+一个会获得msg.lock，然后执行完msg.wait()方法继而完成
+synchronized block之后释放msg.lock，依次重复，直到所有等待线程
+都完成这个过程，整个同步过程也就结束了。
