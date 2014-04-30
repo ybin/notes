@@ -178,7 +178,7 @@ if (c == null) {
 答案是利用delegation model构成namespace，在HotSpot中，没加载一个类JVM内部都会
 把它缓存起来，JVM内部维护一个巨大的哈希表：
 
-$hash\;table: classname+loader \stackrel{hash}{\longrightarrow} class\;object$
+$$hash\;table: classname+loader\;\overset{hash}\Longrightarrow\;class\;object$$
 
 加上代理模式，每个child loader都可以看到parent加载的class object，于是一个
 class loader所能加载的class连同其parent所能加载的class就构成了一个namespace，
