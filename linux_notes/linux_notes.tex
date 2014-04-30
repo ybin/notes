@@ -445,7 +445,7 @@
   explorer.exe /select, [file-path]
 
   打开新的cmd并进入到指定目录：\\
-  cmd.exe /c start /d [dir-path]
+  cmd.exe /k cd /d [dir-path]
 
   使用系统默认程序打开文件：\\
   cmd.exe /c [file-path]
@@ -494,11 +494,11 @@
     echo 名字：%str%
     echo "ybin"=>"yanbin": %str:ybin=yan bin%
   \end{bashcode}
-  
+
   \section[Windows客串：命令行模式启动Emacs]{Windows客串：命令行模式启动Emacs}
   直接在cmd中使用'emacs'启动时，cmd会一直被占用，使用'\&'也不行，可以使用
   'runemacs'代替'emacs'，此为Emacs的命令行模式，cmd不会被占用。
-  
+
   \section[Windows客串：递归删除.svn目录]{Windows客串：递归删除.svn目录}
   \begin{bashcode}
     @echo on
