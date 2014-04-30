@@ -24,20 +24,6 @@
 
 \input{parts/iteration.tex}
 
-\section[Print system properties]{Print system properties}
-\begin{javacode}
-public void printSystemProperties() {
-  Properties p = System.getProperties();
-  Enumeration<Object> e = p.keys();
-  String key;
-
-  for( ; e.hasMoreElements(); ) {
-    key = (String) e.nextElement();
-    System.out.println(key + " = " + p.getProperty(key));
-  }
-}
-\end{javacode}
-
 \input{parts/innerclass.tex}
 
 \input{parts/doublebraceinitializer.tex}
@@ -52,63 +38,7 @@ public void printSystemProperties() {
 \part[Java IO]{Java IO}
 Java的IO库位于java.io.*包中。
 
-\section[面向字节的IO接口]{面向字节的IO接口}
-InputStream和OutputStream是面向字节的IO接口，它们处理的是字节流
-
-\subsection[InputStream]{InputStream}
-\begin{figure}
-  \centering
-  \includegraphics[width=.9\textwidth]{picturedir/inputstream.png}
-  \caption{面向字节的InputStream接口}
-  \label{fig:inputstream}
-\end{figure}
-
-图\ref{fig:inputstream}展示了InputStream的基本接口。
-InputStream是一个抽象类，真正使用时都是使用其子类进行实例化。
-
-\subsubsection[FileInputStream]{FileInputStream}
-\subsubsection[ByteArrayInputStream]{ByteArrayInputStream}
-\subsubsection[ObjectInputStream]{ObjectInputStream}
-\subsubsection[PipedInputStream]{PipedInputStream}
-\subsubsection[FilterInputStream]{FilterInputStream}
-
-\subsection[OutputStream]{OuttputStream}
-\begin{figure}
-  \centering
-  \includegraphics[width=.9\textwidth]{picturedir/outputstream.png}
-  \caption{面向字节的OutputStream接口}
-  \label{fig:outputstream}
-\end{figure}
-
-图\ref{fig:outputstream}展示了OutputStream的基本接口。
-OutputStream是一个抽象类，真正使用时都是使用其子类进行实例化。
-\subsubsection[FileOutputStream]{FileOutputStream}
-\subsubsection[ByteArrayOutputStream]{ByteArrayOutputStream}
-\subsubsection[ObjectOutputStream]{ObjectOutputStream}
-\subsubsection[PipedOutputStream]{PipedOutputStream}
-\subsubsection[FilterOutputStream]{FilterOutputStream}
-
-
-\section[面向字符的IO接口]{面向字符的IO接口}
-\subsection[面向字符的Input接口]{面向字符的Input接口}
-\begin{figure}
-  \centering
-  \includegraphics[width=.9\textwidth]{picturedir/reader.png}
-  \caption{面向字符的Reader接口}
-  \label{fig:reader}
-\end{figure}
-
-图\ref{fig:reader}展示了Reader的基本接口。
-
-\subsection[面向字符的Output接口]{面向字符的Output接口}
-\begin{figure}
-  \centering
-  \includegraphics[width=.9\textwidth]{picturedir/writer.png}
-  \caption{面向字符的Writer接口}
-  \label{fig:writer}
-\end{figure}
-
-图\ref{fig:writer}展示了Writer的基本接口。
+\input{parts/javaio.tex}
 
 
 \part[Java NIO]{Java NIO}
@@ -119,29 +49,9 @@ OutputStream是一个抽象类，真正使用时都是使用其子类进行实�
 
 \section[package: concurrency]{package concurrency}
 
-\input{parts/cocurrencykeyword}
+\input{parts/cocurrencykeyword.tex}
 
-\section[Java Memory Model]{Java Memory Model}
-Java Memory Model(JMM)，即Java内存模型，是存在于Java语言层面的内容，
-并不涉及到JVM，JMM是用于Java线程间通讯的一套规则，目的是防止线程间
-出现数据竞争。所谓的数据竞争指的是：如果A操作、B操作同时需要某些数据，
-并且A、B之间存在影响（单向或者相互影响），但是并没有任何手段可以
-保证它们之间的执行顺序，那么就说A、B之间存在数据竞争。如A读取某个值
-而B写入某个值，但是没有任何手段可以保证它们之间的顺序，那么它们存在
-数据竞争。
-
-为此JSR-133制定了一套规则叫做happens-before规则，以此避免数据竞争。
-但是需要注意的是happens-before并不仅仅是指的操作顺序，它更主要的是
-明确“可见性”，如其中有一条规则如下：
-
-\emph{对同一个monitor的unlock必须发生在其他线程lock之前}
-
-这个很好理解，先释放锁再获取锁，但是这里不仅仅指的是操作顺序，它还要
-保证，unlock之前的monitor监视的操作结果(如synchronize block里的操作)
-必须能够被lock之后的线程看到，也就是说
-如果Action A happens-before Action B，那么A的操作结果必须对B是
-可见的，也就是说A的操作结果要写入主内存，而B在操作之前必须先从主内存
-中同步数据到它的工作内存(e.g. CPU Cache)。
+\input{parts/jmm.tex}
 
 
 \part[JVM]{Java Virtual Machine}
@@ -158,7 +68,7 @@ JVM Internal Architecture, see figure \ref{fig:jvm} and \ref{fig:jvm2}.
   \caption{JVM Internal Architecture - 2}\label{fig:jvm2}
 \end{figure}
 
-\section[什么是JVM]{什么是JVM}
+\section[What is JVM]{什么是JVM}
 Java Virtural Machine(JVM)可能有三种解释：
 \begin{enumerate}
   \item The abstract specification，即JVM规范

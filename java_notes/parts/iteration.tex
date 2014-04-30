@@ -109,3 +109,17 @@ public void operateMap() {
   }
 }
 \end{javacode}
+
+\section[Print system properties]{Print system properties}
+\begin{javacode}
+public void printSystemProperties() {
+  Properties p = System.getProperties();
+  Enumeration<Object> e = p.keys();
+  String key;
+
+  for( ; e.hasMoreElements(); ) {
+    key = (String) e.nextElement();
+    System.out.println(key + " = " + p.getProperty(key));
+  }
+}
+\end{javacode}
