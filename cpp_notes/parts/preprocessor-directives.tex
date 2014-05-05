@@ -109,3 +109,33 @@ else
 一般编译器都会优化do-while(0)，所以不存在性能问题。
 
 另外，注意宏定义中添加注释时使用多行注释而不是单行注释。
+
+\vspace{0.5cm}
+
+除此之外，do-while(0)还有另外一个用处，那就是避免使用goto语句，
+
+\begin{cppcode}
+// return value: if not 0 then success else fail
+int manipulate() {
+  // allocate resource
+  int *p = (int*)malloc(1024, sizeof(int));
+  int ret = 0;
+  
+  // any step failure will result to whole failure
+  do {
+    ret = do_step_1(p);
+    if(!ret) break;
+    
+    ret = do_step_2(p);
+    if(!ret) break;
+    
+    ret = do_step_3(p);
+    if(!ret) break;
+  } while(0);
+  
+  // free resource
+  free(p);
+  p = NULL;
+  return ret;
+}
+\end{cppcode}
