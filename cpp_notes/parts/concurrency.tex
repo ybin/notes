@@ -1,0 +1,56 @@
+﻿\section[Concurrency]{Concurrency}
+在Linux上多线程资源同步的方法大致有如下三个，它们也是C/C++世界中
+的同步方法，现在通过与Java对比，分别进行介绍。
+
+\subsection[互斥锁]{互斥锁}
+Mutex跟Java中的synchronized类似，用法也一致。
+
+\begin{cppcode}
+  mutex _lock;
+  int count = 0;
+  mutex_lock(_lock);
+  count++;
+  mutex_unlock(_lock);
+\end{cppcode}
+
+注意：cpp中利用对象的构造函数、析构函数，配合mutex，又创建出
+AutoMutex，它只能用于cpp中。
+
+另外，跟synchronized类似，这需要程序员自觉，如果程序员不手动
+使用mutex，而是直接count++，那么mutex就被绕过去了。
+
+\subsection[条件变量]{条件变量}
+条件变量需要配合mutex使用，它类似于Java中的wait(), notify()/notifyAll()
+机制，使用方法也是类似的。
+
+\begin{cppcode}
+  // 100个线程同时工作，取出前十个完工的线程
+  mutex_lock(_lock);
+  // 有一个线程完成了，全局变量增加1
+  num = num + 1;
+  if(num <= 10) {
+    // 如果完成的线程数量不到10个就等待
+    cond_wait(_lock, cond);
+    printf("Top 10 threads have finished...");
+  } else if(num = 11) {
+    // 完成线程数已经达到10个了，通知10个等待的线程
+    cond_broadcast(_lock, cond);
+  }
+  mutex_unlock(_lock);
+\end{cppcode}
+
+跟Java里的用法简直如出一辙。
+
+\subsection[读写锁]{读写锁}
+读取锁有三种状态：未锁状态(unlock)、共享读取状态(shared-read lock)、互斥写入状态(exclusive-write lock)
+
+\begin{itemize}
+\item unlock状态的lock可以被线程锁定为共享读取状态或者互斥写入状态
+\item 共享读取状态的lock可以被其他线程继续锁定为共享读取状态
+\item 互斥写入状态的lock，其他线程既不能锁定为Read锁也不能锁定为Write锁
+\end{itemize}
+
+这样，多个线程就可以共享资源的读取，而当有写入操作时，各个线程就转换为互斥，
+互斥写入也是使用条件变量完成的。
+
+互斥锁=>条件变量=>读写锁，层层深入，一个比一个精妙。

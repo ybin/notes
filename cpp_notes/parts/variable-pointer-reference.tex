@@ -1,0 +1,39 @@
+﻿\section[variable, reference and pointer]{variable, reference and pointer}
+variable特指stack上的variable，heap上的variable都是指针。
+
+一句话解释：\\
+variable赋值时分配内存，不论是基本类型还是对象；\\
+reference只是起了个“别名”，不分配任何内存；\\
+pointer分配size(*void)的内存，一般为4字节，真正的内存需额外分配。
+
+实例（沿用上一节中的Test类）：
+
+\begin{cppcode}
+void print_memory_addr() {
+    Test t;   // 在stack上创建一个Test对象
+    Test t0;  // 在stack上创建另一个Test对象，使用对象t初始化
+    Test& tt = t; // 在stack上创建对象t的引用tt
+    Test* ttt = new Test(); // 在heap上创建对象，在stack上创建指针
+
+    cout<<(long)&t<<endl;
+    cout<<(long)&t0<<endl;
+    cout<<(long)&ttt<<endl;
+    cout<<(long)&tt<<endl;
+}
+\end{cppcode}
+
+打印结果，
+
+\begin{bashcode}
+af865990
+af865980
+af865978
+af865990
+\end{bashcode}
+
+90-80共16个字节存放object t(为什么是16个字节？这是gcc的优化)；\\
+80-78共8个字节放置object t0；\\
+78开始的4个字节放置pointer ttt；\\
+有意思的是reference tt，它直接被翻译成object t的内址，
+即reference在内存中是“不占用内存”的，它只能被编译器识别，
+类似于Clojure里的reader macro，不是吗！

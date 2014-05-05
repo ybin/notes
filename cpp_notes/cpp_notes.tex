@@ -4,7 +4,7 @@
 \input{../styles/article_preamble}
 \input{../styles/tikz_preamble}
 
-\sybtitle{CPP Notes}
+\sybtitle{C/CPP Notes}
 \sybauthor{孙延宾}
 \sybdate{\today}
 
@@ -21,141 +21,8 @@
 \setcounter{page}{1}
 
 \part[Basic Usage]{Basic Usage}
-\section[When destroy object]{When object is destroied}
-一句话：Stack上的object自动销毁，Heap上的object手动销毁。
-
-实例：
-首先创建一个用于演示的类，\\
-\begin{cppcode}
-class Test {
-public:
-    Test() {
-      cout<<"Test::constructor"<<endl;
-    }
-
-    ~Test() {
-      cout<<"Test::destructor"<<endl;
-    }
-
-private:
-    int a, b; // 占空用的
-};
-\end{cppcode}
-
-然后分别在stack和heap上创建该类的对象，
-
-\begin{cppcode}
-void test() {
-    Test t; // object is in stack
-    Test tt = new Test(); // object is in heap
-}
-\end{cppcode}
-
-调用test()函数打印结果，
-
-\begin{bashcode}
-Test::constructor # constructor of t
-Test::destructor # destructor of tt, tt do NOT ness constructor
-Test::destructor  # destructor of t
-\end{bashcode}
-
-heap上的对象tt不会自动销毁，内存泄露发生。
-
-\section[variable, reference and pointer]{variable, reference and pointer}
-variable特指stack上的variable，heap上的variable都是指针。
-
-一句话解释：\\
-variable赋值时分配内存，不论是基本类型还是对象；\\
-reference只是起了个“别名”，不分配任何内存；\\
-pointer分配size(*void)的内存，一般为4字节，真正的内存需额外分配。
-
-实例（沿用上一节中的Test类）：
-
-\begin{cppcode}
-void print_memory_addr() {
-    Test t;   // 在stack上创建一个Test对象
-    Test t0;  // 在stack上创建另一个Test对象，使用对象t初始化
-    Test& tt = t; // 在stack上创建对象t的引用tt
-    Test* ttt = new Test(); // 在heap上创建对象，在stack上创建指针
-
-    cout<<(long)&t<<endl;
-    cout<<(long)&t0<<endl;
-    cout<<(long)&ttt<<endl;
-    cout<<(long)&tt<<endl;
-}
-\end{cppcode}
-
-打印结果，
-
-\begin{bashcode}
-af865990
-af865980
-af865978
-af865990
-\end{bashcode}
-
-90-80共16个字节存放object t(为什么是16个字节？这是gcc的优化)；\\
-80-78共8个字节放置object t0；\\
-78开始的4个字节放置pointer ttt；\\
-有意思的是reference tt，它直接被翻译成object t的内址，
-即reference在内存中是“不占用内存”的，它只能被编译器识别，
-类似于Clojure里的reader macro，不是吗！
-
-\section[Concurrency]{Concurrency}
-在Linux上多线程资源同步的方法大致有如下三个，它们也是C/C++世界中
-的同步方法，现在通过与Java对比，分别进行介绍。
-
-\subsection[互斥锁]{互斥锁}
-Mutex跟Java中的synchronized类似，用法也一致。
-
-\begin{cppcode}
-  mutex _lock;
-  int count = 0;
-  mutex_lock(_lock);
-  count++;
-  mutex_unlock(_lock);
-\end{cppcode}
-
-注意：cpp中利用对象的构造函数、析构函数，配合mutex，又创建出
-AutoMutex，它只能用于cpp中。
-
-另外，跟synchronized类似，这需要程序员自觉，如果程序员不手动
-使用mutex，而是直接count++，那么mutex就被绕过去了。
-
-\subsection[条件变量]{条件变量}
-条件变量需要配合mutex使用，它类似于Java中的wait(), notify()/notifyAll()
-机制，使用方法也是类似的。
-
-\begin{cppcode}
-  // 100个线程同时工作，取出前十个完工的线程
-  mutex_lock(_lock);
-  // 有一个线程完成了，全局变量增加1
-  num = num + 1;
-  if(num <= 10) {
-    // 如果完成的线程数量不到10个就等待
-    cond_wait(_lock, cond);
-    printf("Top 10 threads have finished...");
-  } else if(num = 11) {
-    // 完成线程数已经达到10个了，通知10个等待的线程
-    cond_broadcast(_lock, cond);
-  }
-  mutex_unlock(_lock);
-\end{cppcode}
-
-跟Java里的用法简直如出一辙。
-
-\subsection[读写锁]{读写锁}
-读取锁有三种状态：未锁状态(unlock)、共享读取状态(shared-read lock)、互斥写入状态(exclusive-write lock)
-
-\begin{itemize}
-\item unlock状态的lock可以被线程锁定为共享读取状态或者互斥写入状态
-\item 共享读取状态的lock可以被其他线程继续锁定为共享读取状态
-\item 互斥写入状态的lock，其他线程既不能锁定为Read锁也不能锁定为Write锁
-\end{itemize}
-
-这样，多个线程就可以共享资源的读取，而当有写入操作时，各个线程就转换为互斥，
-互斥写入也是使用条件变量完成的。
-
-互斥锁=>条件变量=>读写锁，层层深入，一个比一个精妙。
-
+\input{parts/object-destroy.tex}
+\input{parts/variable-pointer-reference.tex}
+\input{parts/concurrency.tex}
+\input{parts/preprocessor-directives.tex}
 \end{document}

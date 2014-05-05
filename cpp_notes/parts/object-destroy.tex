@@ -1,0 +1,39 @@
+﻿\section[When destroy object]{When object is destroied}
+一句话：Stack上的object自动销毁，Heap上的object手动销毁。
+
+实例：
+首先创建一个用于演示的类，\\
+\begin{cppcode}
+class Test {
+public:
+    Test() {
+      cout<<"Test::constructor"<<endl;
+    }
+
+    ~Test() {
+      cout<<"Test::destructor"<<endl;
+    }
+
+private:
+    int a, b; // 占空用的
+};
+\end{cppcode}
+
+然后分别在stack和heap上创建该类的对象，
+
+\begin{cppcode}
+void test() {
+    Test t; // object is in stack
+    Test tt = new Test(); // object is in heap
+}
+\end{cppcode}
+
+调用test()函数打印结果，
+
+\begin{bashcode}
+Test::constructor # constructor of t
+Test::destructor # destructor of tt, tt do NOT ness constructor
+Test::destructor  # destructor of t
+\end{bashcode}
+
+heap上的对象tt不会自动销毁，内存泄露发生。

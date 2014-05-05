@@ -1,0 +1,111 @@
+﻿\section[Preprocessor directives]{Preprocessor directives}
+本节参考\href{http://www.cplusplus.com/doc/tutorial/preprocessor/}{网址}。
+
+\subsection[\#define,\#undef]{Macro definitions}
+宏定义预处理指令包括\#define和\#undef，语法格式：
+
+\begin{cppcode}
+#define identifier replacement
+// identifier在此期间有效
+#undef identifier
+\end{cppcode}
+
+\#define支持两个操作符(operator)：\#和\#\#。
+
+\subsubsection[operator '\#']{operator '\#'}
+在\#define的replacement部分，如果参数前面有\#，则参数会被替换为
+字符串(string literal，相当于用双括号括起来)
+
+\begin{cppcode}
+#define str(x) #x
+cout << str(test);
+// 将会被翻译为
+cout << "test";
+\end{cppcode}
+
+\subsubsection[operator '\#\#']{operator '\#\#'}
+\#\#操作符将会组合两个参数，并且去掉它们之间的空格。
+
+\begin{cppcode}
+#define glue(a, b) a ## b
+glue(c, out) << "test";
+// 将会翻译为
+cout << "test";
+\end{cppcode}
+
+\subsection[\#ifdef,\#ifndef,\#if,\#endif,\#else and \#elif]{Conditional inclusions}
+条件判断预处理指令包括：\#ifdef,\#ifndef,\#if,\#endif,\#else 和 \#elif，望文生义即可。
+
+\begin{cppcode}
+// #if的操作数必须是编译之前就可以确定的值
+#if TABLE_SIZE>200
+#undef TABLE_SIZE
+#define TABLE_SIZE 200
+
+#elif TABLE_SIZE<50
+#undef TABLE_SIZE
+#define TABLE_SIZE 50
+
+#else
+#undef TABLE_SIZE
+#define TABLE_SIZE 100
+#endif
+
+int table[TABLE_SIZE];
+\end{cppcode}
+
+\subsection[\#error]{Error directive}
+\#error预处理指令用于在编译时抛出错误信息并终止编译，
+
+\begin{cppcode}
+#ifndef __cplusplus
+#error A C++ compiler is required!
+#endif
+\end{cppcode}
+
+\subsection[\#include]{Source file inclusion}
+
+\subsection[\#pragma]{Pragma directive}
+\#pragma指令用于给编译器提供选项，具体选项在编译器之间各不相同，在此不详述。
+
+\subsection[Predefined macros]{Predefined macros}
+预定义指令都以“双下划线”开始和结束，包括两部分，
+\begin{enumerate}
+  \item 各个编译器都支持的指令
+  \begin{description}
+    \item[\_\_LINE\_\_] 整数值，替换为当前行号
+    \item[\_\_FILE\_\_] 字符串，替换为当前文件名
+    \item[\_\_DATE\_\_] 字符串，替换为当前日期，"Mmm dd yyyy"格式
+    \item[\_\_TIME\_\_] 字符串，替换为当前时间
+    \item[\_\_cplusplus\_\_] 整数值，C++编译器会定义该宏，不同编译器定义的值可能不同
+    \item[\_\_STD\_HOSTED\_\_] 1如果当前编译器是hosted implementation(包含标准头文件)，否则为0
+  \end{description}
+  \item 编译器选择性支持的指令
+  \begin{itemize}
+    \item 略(详见\href{http://www.cplusplus.com/doc/tutorial/preprocessor/}{参考网址})。
+  \end{itemize}
+\end{enumerate}
+
+\subsection[Why use 'do \{\} while(0)']{宏定义中为什么使用'do \{\} while(0)'}
+使用\#define定义带参数的宏时，经常使用'do \{\} while(0)'这样的格式，
+
+\begin{cppcode}
+#define foo(x) \
+  do { \
+    printf("msg: ", #x); \
+    /* 其他复杂的代码 */ \
+  } while(0) // 注意这里没有分号
+
+if(/*condition true*/)
+  foo(OK); // 注意这里的分号
+else
+  // other operations
+\end{cppcode}
+
+这是因为do-while是一个“独立的语法单元”，它的作用类似于用括号把参数括起来，
+但是为何不用\{\}把复杂的代码括起来呢？试试用大括号替换上面的do-while，
+会报错，因为foo(OK)后面的分号(;)。
+
+一般编译器都会优化do-while(0)，所以不存在性能问题。
+
+另外，注意宏定义中添加注释时使用多行注释而不是单行注释。
