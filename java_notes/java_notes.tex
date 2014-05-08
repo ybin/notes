@@ -84,6 +84,12 @@ JVM instance的使命就是“运行Java application”，Java application启动
 一个“单独”的JVM instance中，如果一个电脑上同时运行了3个Java application，那么将会有
 3个JVM instance同时存在。
 
+运行时内存布局大致如下：
+\begin{verbatim}
+0GB            约1GB                 | <------Xmz----> 4GB
+| OS & C-runtime | JVM | Native heap |   Java heap(s)   |
+\end{verbatim}
+
 \input{parts/classfileformat.tex}
 
 \input{parts/runtimedataglance.tex}
