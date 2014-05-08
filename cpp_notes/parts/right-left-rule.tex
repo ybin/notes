@@ -1,0 +1,40 @@
+﻿\section[Right-Left rule]{Right-Left rule}
+本节参考\href{http://ieng9.ucsd.edu/~cs30x/rt_lt.rule.html}{网址}，
+也可以阅读right-left-rule.txt文件，如果你能看到这篇文档的源码的话。
+
+C语言中的“右-左法则”(不是“左-右法则“)，用于解码各种声明(declarations)，
+包括变量声明、函数声明等等，这是一个通用法则，可以放心使用。
+
+首先该法则需要一个解码表，用于把符号解码为英语，
+\begin{description}
+  \item[* :] 读作"pointer to" - 总是在左侧
+  \item[[]:] 读作"array of" - 总是在右侧
+  \item[():] 读作"function returning" - 总是在右侧
+\end{description}
+
+有了解码表，下面就是具体操作步骤，一步一步将C语言声明解码为可以
+理解的英语语句。
+
+注意顺序：先往右，再往左，并且走过的就不要再走了，
+\begin{description}
+  \item[Step 1] 找到你的identifier\\
+  这是起点，然后翻译为"xxx is"，xxx为identifier的名字
+  \item[Step 2] 往右走，直到尽头或者遇到")"
+  \item[Step 3] 往左走，直到尽头或者遇到"("
+\end{description}
+重复Step 2和Step 3，直到解析完成。
+
+下面是具体实例，
+
+\hspace{1cm}\textcolor{red}{int *p[];}
+
+\begin{enumerate}
+  \item int *\textcolor{red}{p}[];\\
+  "p is"
+  \item int *p\textcolor{red}{[]};\\
+  "p is array of"
+  \item int \textcolor{red}{*}p[];\\
+  "p is array of pointer to"
+  \item \textcolor{red}{int} *p[];\\
+  "p is array of pointer to int"
+\end{enumerate}

@@ -1,0 +1,45 @@
+﻿\section[Pointer vs Array]{Pointer vs Array}
+本节实例源自该\href{http://coolshell.cn/articles/5761.html}{网址}。
+
+\begin{cppcode}
+#include <stdio.h>
+int main(void)
+{
+  int a[5];  // 假设a的内存地址是：0xBFE2E100
+  printf("%x\n", a);  // output: 0xBFE2E100, 类似于int *a;
+  printf("%x\n", a+1);  // output: 0xBFE2E100 + sizeof(int)
+  printf("%x\n", &a);  // output: 0xBFE2E100, 类似于int (*a)[]; 
+  printf("%x\n", &a+1);  // output: 0xBFE2E100 + 5*sizeof(int)
+}
+\end{cppcode}
+
+一般来说，数组等同于指针，但是严格来说，他们有很多差别，
+前两个printf中，a的行为跟整型指针很相似，可以说是一样的。
+但是数组就是数组，它不是指针，\&操作下这种差别就很明显了，
+
+\begin{cppcode}
+int *p;
+int a[5];
+/*
+ * a被翻译为int *a; 指向int的指针
+ * &a被翻译为int (*a)[]; 指向数组的指针
+ * &p指针的内存地址
+ * &&a被翻译为int (*a)[][]; 指向二维数组的指针
+ * &&p不存在，因为p是一级指针
+ */
+\end{cppcode}
+
+需要注意的是\&a和\&\&a仍然是指针，只是其指向的“内容的粒度”不同而已，
+这一点从a+1(跨过第二个维度的一个元素，即第一个维度的长度)就能反应出来，
+不过只是粒度不同，内存地址仍然是一样的。
+
+区分以下三中情形，
+
+\begin{cppcode}
+int *p;
+// a POINTER to int
+int (*p)[];
+// a POINTER to an array whose elements are int
+int* p[];
+// an ARRAY whose elements are pointers to int
+\end{cppcode}
