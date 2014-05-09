@@ -17,3 +17,45 @@ super就更让人大跌眼镜了，super不仅不是instance的field，它其实
 加载子类时，父类当然是要一并加载的，但是创建子类对象时并不会创建父类对象，而是将
 父类对象的fields一并存储到子类对象中（父类的method存在于Method Area中），并且这些
 属性排列还有一定规则：先排放父类属性，再排放子类属性！
+
+\subsection[Example]{实例}
+看下面的代码，
+
+\begin{javacode}
+void test() {
+  int result;
+
+  this.print();
+  super.print();
+
+  result = this.testField;
+  result = super.testField;
+}
+\end{javacode}
+
+下面是对应的bytecode，
+\begin{verbatim}
+0:   aload_0
+1:   invokevirtual   #34; //Method print:()V
+4:   aload_0
+5:   invokespecial   #36; //Method com/example/javademo/A.print:()V
+8:   aload_0
+9:   getfield        #12; //Field testField:I
+12:  istore_1
+13:  aload_0
+14:  getfield        #37; //Field com/example/javademo/A.testField:I
+17:  istore_1
+18:  return
+\end{verbatim}
+
+下面是对应的Local Variables，
+\begin{verbatim}
+LocalVariableTable:
+  Start   Length  Slot  Name    Signature
+  0       19      0     this    Lcom/example/javademo/B;
+  13      6       1     result  I
+\end{verbatim}
+
+可见，无论是this还是super均执行统一个对象(in heap)，只是
+super的方法和属性是全限定名称，以此与this的同名方法和属性
+进行区分。
