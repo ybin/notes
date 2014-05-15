@@ -1,0 +1,28 @@
+﻿\section[Java file path]{Java中的文件路径}
+文件路径分为相对路径和绝对路径，其中绝对路径并不唯一，如下几个路径，
+\begin{itemize}
+  \item C:/temp.txt
+  \item C:/WINDOWS/../temp.txt
+  \item C:/./././temp.txt
+\end{itemize}
+他们都是绝对路径，而且他们都表示同一个文件，于是就产生一个问题，
+对于任意一个文件，有没有一个“标准”的绝对路径呢？有，而且不同操作系统
+有不同的规定，这个标准的绝对路径就叫做cannonical path，可见
+cannonical path也是一个绝对路径，只是它是一个特殊的绝对路径而已。
+
+在Java中，
+
+\begin{javacode}
+public void filePath(String path) throws IOException {
+  File f = new File(path);
+  System.out.println("getPath(): " + f.getPath());
+  System.out.println("getAbsolutePath(): " + f.getAbsolutePath());
+  System.out.println("getCannonicalPath(): " + f.getCanonicalPath());
+}
+// 函数调用示例
+new JavaDemo().filePath("C:/./././temp.txt");
+// 输出结果
+// getPath(): .\.\.\temp.txt
+// getAbsolutePath(): D:\eclipse\workspace-adt\JavaDemo\.\.\.\temp.txt
+// getCannonicalPath(): D:\eclipse\workspace-adt\JavaDemo\temp.txt
+\end{javacode}
