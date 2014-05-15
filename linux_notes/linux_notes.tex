@@ -256,11 +256,30 @@
   -sourcepath的值可以是folder、.jar、.zip，其中包含的都是.java文件。
 
   \subsection[运行命令：java]{运行命令：java}
-  \cmd{javac -classpath </path/to/folder;/path/to/.jar;/path/to/.zip> runnable}
+  \cmd{java -classpath </path/to/folder;/path/to/.jar;/path/to/.zip> runnable}
   -classpath的值可以是folder、.jar、.zip，其中包含的都是.class文件。\\
   runnable是一个.class文件，扩展名.class不要加上。
 
   注意：-classpath或者-cp时，必须加上“当前目录”，否则找不到runnable，这个太蛋疼了吧！
+  
+  运行Eclipse项目的某一个class文件时，在bin(output dir)目录下执行，
+  \cmd{java com.example.DemoClass}
+  
+  常用命令参数，
+  
+  \begin{itemize}
+    \item -client 启用client VM
+    \item -server 启用server VM
+    \item -verbose:[class|gc|jni] 启用详细输出，使用class可以查看加载的所有class文件
+    \item -Xint,-Xcomp 启用interpreted mode、compiled mode，默认为mixed mode\\
+    可以使用java -X<mode> -version进行查看
+    \item -enableassertions[:<packagename>...|:<classname>]
+    \item -disenableassertions[:<packagename>...|:<classname>]\\
+    启用、关闭指定粒度的断言
+    \item  -esa | -enablesystemassertions
+    \item -dsa | -disablesystemassertions\\
+    启用、关闭系统断言
+  \end{itemize}
 
   \subsection[反汇编命令：javap]{反汇编命令：javap}
   javap是java的反汇编命令，但是很少有人用它来进行反汇编，
