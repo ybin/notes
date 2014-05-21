@@ -1,0 +1,57 @@
+﻿\section[Shared library(.so)]{创建并使用动态链接库(.so)}
+动态链接库的创建及使用大致有以下步骤：
+\begin{enumerate}
+  \item 创建动态链接库代码
+  \item 创建测试程序代码
+  \item 创建Makefile文件
+\end{enumerate}
+
+\subsection[code for .so file]{创建动态链接库代码}
+我们创建一个名为"shared"的动态链接库，代码如下，
+
+\begin{cppcode}
+/* shared.h */
+void say_hi();
+
+/* shared.c */
+#include <stdio.h>
+#include "shared.h"
+void say_hi() {
+  printf("Hi, dynamic linked library!\n");
+}
+\end{cppcode}
+
+\subsection[code for test program]{创建测试程序代码}
+\begin{cppcode}
+/* test.c */
+#include "shared.h"
+int main()
+{
+  say_hi();
+}
+\end{cppcode}
+
+\subsection[create Makefile]{创建Makefile文件}
+代码并没有什么稀奇的，稀松平常，关键是Makefile文件，
+
+\begin{makecode}
+# Step 1. 注意-L和-l两个参数，-l<xxx>，对应于libxxx.so
+test : libshared.so
+  gcc -L/path/to/libshared.so/ -lshared -Wall test.c -o test
+
+# Step 0. 注意-shared和-fPIC两个参数
+libshared.so : shared.o
+  gcc -shared -o libshared.so shared.o
+shared.o : shared.c shared.h
+  gcc -c -Wall -fPIC shared.c
+\end{makecode}
+
+动态链接库的关键特性就是runtime时载入，所以要运行test程序，
+就要让系统在运行时找到libshared.so文件才行，这通过设置环境变量
+来实现，
+
+\begin{bashcode}
+export LD_LIBRARY_PATH=/path/to/test/program/:$LD_LIBRARY_PATH
+# 运行测试程序
+./test
+\end{bashcode}

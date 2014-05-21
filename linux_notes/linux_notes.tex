@@ -261,12 +261,12 @@
   runnable是一个.class文件，扩展名.class不要加上。
 
   注意：-classpath或者-cp时，必须加上“当前目录”，否则找不到runnable，这个太蛋疼了吧！
-  
+
   运行Eclipse项目的某一个class文件时，在bin(output dir)目录下执行，
   \cmd{java com.example.DemoClass}
-  
+
   常用命令参数，
-  
+
   \begin{itemize}
     \item -client 启用client VM
     \item -server 启用server VM
@@ -579,6 +579,6 @@
   debugfs的挂载点(mount point)为/sys/kernel/debug/，例如binder的debugfs
   信息就可以在/sys/kernel/debug/binder/目录中找到。
 
-
+\input{parts/create-and-run-shared-library.tex}
 
 \end{document}
