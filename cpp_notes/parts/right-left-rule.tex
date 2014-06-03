@@ -7,9 +7,9 @@ C语言中的“右-左法则”(不是“左-右法则“)，用于解码各种
 
 首先该法则需要一个解码表，用于把符号解码为英语，
 \begin{description}
-  \item[* :] 读作"pointer to" - 总是在左侧
-  \item[[]:] 读作"array of" - 总是在右侧
-  \item[():] 读作"function returning" - 总是在右侧
+  \item[{* }:] 读作"pointer to" - 总是在左侧
+  \item[{[~]}:] 读作"array of" - 总是在右侧
+  \item[{(~)}:] 读作"function returning" - 总是在右侧
 \end{description}
 
 有了解码表，下面就是具体操作步骤，一步一步将C语言声明解码为可以

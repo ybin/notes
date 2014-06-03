@@ -1,0 +1,39 @@
+﻿\section[Enum]{Enum(枚举)}
+在C、C++中枚举有两种基本用法，一是常规的用法，
+二是代替常量的宏定义。
+\subsection[常规用法]{常规用法}
+\begin{cppcode}
+// RED=0, GREEN=5, BLACK=6, CYAN=5
+enum my_color_enum { RED, GREEN=5, BLACK, CYAN=5 };
+
+// define variable
+enum my_color_enum color = RED;
+// do something...
+color = CYAN;
+// do something...
+
+// 还可以使用typedef，
+typedef enum my_color_enum {
+  RED, GREEN=5, BLACK, CYAN=5
+} color_t;
+color_t red = RED;
+printf("red=%d\n", red);
+
+// 当然，我们也可以直接定义整型变量，
+int red = RED, cyan = CYAN;
+\end{cppcode}
+
+首先这会定义全局的常量：RED, GREEN, BLACK, CYAN，
+然后我们可以定义enum类型的变量来保存这些常量，可见，
+enum跟struct用法十分相似。
+
+\subsection[代替宏来定义常量]{代替宏来定义常量}
+如果我们只是想定义一些常量而已，则可以这样，
+
+\begin{cppcode}
+enum { RED, GREEN, BLACK };
+
+// usage
+int red = RED;
+printf("red=%d", red);
+\end{cppcode}
