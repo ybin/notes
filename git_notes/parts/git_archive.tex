@@ -1,0 +1,11 @@
+﻿\section[Git archive]{Create an archive of a Git repository}
+打包一个git仓库的内容，
+
+\begin{bashcode}
+# 根据HEAD的内容创建一个zip包
+git archive -o latest.zip HEAD
+# 根据v2.0(tag或branch)的内容创建一个zip包，
+# 每个文件都增加一个前缀，即把所有文件放到app-2.0-src/目录中再打包
+# 注意“/”是必须的，git真的只是增加一个前缀而已！
+git archive --prefix=app-2.0-src/ -o app-2.0-src.zip v2.0
+\end{bashcode}
