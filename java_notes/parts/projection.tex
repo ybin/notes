@@ -1,0 +1,31 @@
+﻿\section[Reflection]{Reflection}
+
+\subsection[明确定义的 vs 继承而来的]{明确定义的 vs 继承而来的}
+类中明确定义的field, method, class, interface，用getDeclaredXXX()
+来获取，这个方法不会涉及到继承而来的东西，如要获取继承到的field,
+method等，可以使用getXXX()，不过这些东西只能取到public的，如父类
+中定义了，
+
+\begin{javacode}
+public void print0() { }
+private void print1() { }
+\end{javacode}
+
+则通过getXXX()只能获取到print0。当然这些函数都是Class对象的方法。
+下面是一个示例：“如何让2+2=5”，
+
+\begin{javacode}
+// 详细内容请参阅Integer类的实现，java把-128到128范围内的整数都缓存了。
+
+public static void testIntegerCache() throws Exception {
+  // 取到Integer的内部类，IntegerCache
+  Class integerCache = Integer.class.getDeclaredClasses()[0];
+  // 该内部类有个field，cache，它的值是一个Integer[]
+  Field cache = integerCache.getDeclaredField("cache");
+  cache.setAccessible(true);
+  // 取到该数组，并修改"4"所在位置上的值为"5"
+  Integer[] arr = (Integer[])cache.get(integerCache);
+  arr[132] = arr[133];
+  System.out.printf("2 + 2 = %d\n", 2 + 2);
+}
+\end{javacode}

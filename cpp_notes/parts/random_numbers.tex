@@ -1,0 +1,45 @@
+﻿\section[Generate random numbers in C/C++]{Generate random numbers in C/C++}
+在C/C++中生成随机数要用到stdlib.h中的rand()函数和srand()函数，
+rand()函数根据seed值产生一个0..RAND\_MAX(32767)之间的值(包括端点)，
+但是由于rand()的seed值是固定的，所以每次运行程序，rand()产生的随机数
+是相同的。为此，我们每次运行程序时需要设置一个不同的seed值，比如
+pid或者运行时间，此时就需要调用srand(unsigned in seed)函数，示例如下，
+
+\begin{cppcode}
+#include <stdio.h>
+#include <stdlib.h> // rand(), srand()
+#include <time.h>   // time()
+
+void rand_test() {
+  int i;
+  for(i = 0; i < 10; i++)
+    printf(" %d ", rand());
+  putchar('\n');
+}
+
+void srand_test() {
+  int i;
+  srand((unsigned)time(NULL));
+  for(i = 0; i < 10; i++)
+    printf(" %d ", rand());
+  putchar('\n');
+}
+
+int main()
+{
+    rand_test(); // 每次运行程序，结果都一样
+    srand_test(); // 每次运行，结果均不一致
+    return 0;
+}
+\end{cppcode}
+
+示例输出，
+
+\begin{bashcode}
+# 第一次运行结果
+ 41  18467  6334  26500  19169  15724  11478  29358  26962  24464
+ 24670  1024  18283  3498  30494  32031  32564  27417  1451  15655
+# 第二次运行结果
+ 41  18467  6334  26500  19169  15724  11478  29358  26962  24464
+ 24673  11772  3379  27561  8040  3189  2909  24490  17962  9506
+\end{bashcode}

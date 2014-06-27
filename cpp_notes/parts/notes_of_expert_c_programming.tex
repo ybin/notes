@@ -1,0 +1,41 @@
+﻿\section[Notes of "Expert C Programming"]{Notes of "Expert C Programming"}
+
+\subsection[函数原型]{函数原型}
+函数原型是ANSI对函数声明的扩展，对比函数声明和函数原型的差别，
+
+\begin{cppcode}
+// K&R 函数声明
+char *strcpy();
+
+// ANSI 函数原型
+char *strcpy(char *dst, const char *src);
+\end{cppcode}
+
+但是一般习惯用函数声明指代函数原型，此外，ANSI C的函数原型用于编译器在
+\emph{编译期}对函数调用中的\emph{实参}和
+函数原型中的\emph{形参}进行参数一致性检查，而K\&R C中类似的检查(返回值类型检查？)
+被推迟到了链接时，甚至根本不做检查。
+
+编译期，函数声明、函数定义、函数调用，三者必须满足：
+\begin{enumerate}
+  \item 函数声明与函数定义要相容
+  \item 函数声明与函数调用要相容
+\end{enumerate}
+“相容”指的是“不产生抵触”，如参数的类型和个数一致，但是函数定义和函数调用之间
+并不一定相容，这一点编译器不作检查，比如下面这个特例，
+
+\begin{cppcode}
+// test.h
+int add(); // add()接收任意参数
+// test_impl.c
+int add(int a, int b) { return a+b; }
+// test_main.c
+int main()
+{
+  printf(" %d\n", add(1, 2, 4)); // result: 1 + 2 = 3, 4 is ignored!
+}
+\end{cppcode}
+
+作为函数参数使用时，空括号("()")表示接受任意参数，而void("(void)")才
+表示不接受任何参数。函数声明和函数定义之间、函数声明和函数调用之间都满足
+相容性，编译没有问题，但是实际运行确实大相径庭。

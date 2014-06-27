@@ -1,0 +1,253 @@
+﻿
+\section[logcat - Log dumper for Android] {logcat命令}
+\subsection[filter tag name]{过滤tag}
+使用方法：adb logcat -s \lt TAG-NAME1\gt \lt TAG-NAME2\gt
+
+\subsection[filter by priority]{按照等级过滤}
+使用方法：adb logcat "TAG:PRIORITY"\\
+或者\\
+adb logcat "*:PRIORITY"
+
+\subsection[filter by tag and priority]{结合tag和priority}
+使用方法：\\
+adb logcat -s TAG-NAME1:PRIORITY TAG-NAME2:PRIORITY
+
+例如：\\
+adb logcat -s camera:E ybsolar:I
+
+priority包括：\\
+V: verbose\\
+D: debug\\
+I: info\\
+W: warning\\
+E: error\\
+F: fatal\\
+S: silent
+
+\subsection[use grep]{搭配grep}
+使用方法：\\
+adb logcat | grep "key1\bs|key2"
+
+例如：\\
+adb logcat | grep "Exception\bs|Error"\\
+同时搜索Exception或者Error的log。
+
+\subsection[clear buffer]{清空缓存}
+使用方法：\\
+adb logcat -c\\
+清空缓存，即清空旧的日志数据。
+
+\section[screencap]{screencap命令}
+使用方法：adb shell screencap -p | perl -pe 's/\bs x0D\bs x0A/\bs x0A/g' > screen.png
+
+\section[aapt - Android Asset Packaging Tool]{aapt命令}
+使用方法: aapt \textless subcommand\textgreater\ \lt options\gt
+\subsection[print apk file badging information]{打印apk文件概要信息}
+aapt dump badging filename.apk
+
+apk文件的概括性的信息，主要用来查看versionCode、versionName信息。
+
+\subsection[print apk file verbose information]{打印apk文件详细信息}
+aapt list -a filename.apk
+
+输出的信息中包括resource和manifest两方面的内容。manifest文件中的所有信息都被打印出来，
+包括声明的Activity、Receiver、Service，各种permission、intent-filter以及
+versionCode、versionName等等，一应俱全。
+
+\section[pm - Package Manager]{pm命令}
+使用方法：pm \lt subcommand\gt\ \lt options\gt
+
+\subsection[list packages]{查看设备上的package信息}
+pm list packages [-f] [-d] [-e] [-s] [-3] FILTER
+
+\begin{description}
+\item[-f:] 显示package name对应的apk file路径
+\item[-d:] 只显示disabled packages
+\item[-e:] 只显示enabled packages
+\item[-s:] 只显示system packages，apk文件位于/system/app/目录
+\item[-3:] 只显示third party packages，apk文件位于/data/app/目录
+\item[FILTER:] 过滤器，如字符串"camera"将过滤出包名中包含camera的包
+\end{description}
+应用：如何删除不想用的预安装软件呢？
+\begin{coloredenumerate}
+\item 在任务管理器中禁用不想用的应用
+\item adb shell pm list packages -f -d
+\item 删除2中的apk文件
+\end{coloredenumerate}
+应用：使用awk批量删除不想用的预安装应用\\
+adb shell pm list packages -d | gawk -F : '\{system("adb shell pm uninstall " \$2)\}'
+
+
+\subsection[package file path]{打印apk文件路径}
+pm path \lt package-name\gt
+
+\subsection[enable or disable packages]{启用、禁用app}
+pm clear \lt package-name\gt
+
+清空package的数据信息
+
+pm enable \lt package-name\gt
+
+启用某个应用
+
+pm disable \lt package-name\gt
+
+禁用某个应用
+
+\subsection[安装应用]{安装应用}
+pm install [-s] [-f] [-d] [-r] \lt filename.apk\gt
+\begin{description}
+\item[-s:] 将应用安装到sdcard上
+\item[-f:] 将应用安装到内部flash上
+\item[-d:] 允许降级安装，即安装当前应用的低版本apk
+\item[-r:] reinstall app，保持应用数据不被删除
+\end{description}
+
+\subsection[卸载应用]{卸载应用}
+pm uninstall [-k] \lt package-name\gt
+
+\begin{description}
+\item[-k:] 保持应用的data和cache不被删除
+\end{description}
+
+\subsection[查看权限信息]{查看权限信息}
+pm list permissions [-f] [-s]
+
+\begin{description}
+\item[-f:] 列出所有系统权限信息
+\item[-s:] 只列出权限的摘要信息
+\end{description}
+
+
+\section[am - Application Manager]{am命令}
+使用方法：am \lt subcommand\gt\ \lt options\gt
+
+\subsection[启动Activity]{启动Activity}
+am start [-D] [-W] [-R \lt count\gt] [-S] \lt intent\gt
+
+\begin{description}
+\item[-D:] 开启debug
+\item[-W:] wait for launch to complete
+\item[-R \lt count\gt:] 重复启动count次，每次启动前先结束之前的Activity
+\item[-S] 强制关闭先前的Activity再启动新的Activity
+\end{description}
+
+\lt intent\gt 有多种形式：
+
+\begin{coloredenumerate}
+\item -a \lt ACTION\gt] [-d \lt DATA\_URI\gt] [-t \lt MIME\_TYPE\gt
+\item -c \lt CATEGORY\gt\ [-c \lt CATEGORY\gt] ...
+\item -e|--es \lt EXTRA\_KEY\gt\ \lt EXTRA\_STRING\_VALUE\gt\ ...
+\item --esn \lt EXTRA\_KEY\gt\ ...
+\item --ez \lt EXTRA\_KEY\gt\ \lt EXTRA\_BOOLEAN\_VALUE\gt\ ...
+\item --ei \lt EXTRA\_KEY\gt\ \lt EXTRA\_INT\_VALUE\gt\ ...
+\item --el \lt EXTRA\_KEY\gt\ \lt EXTRA\_LONG\_VALUE\gt\ ...
+\item --ef \lt EXTRA\_KEY\gt\ \lt EXTRA\_FLOAT\_VALUE\gt\ ...
+\item --eu \lt EXTRA\_KEY\gt\ \lt EXTRA\_URI\_VALUE\gt\ ...
+\item --ecn \lt EXTRA\_KEY\gt\ \lt EXTRA\_COMPONENT\_NAME\_VALUE\gt
+\item --eia \lt EXTRA\_KEY\gt\ \lt EXTRA\_INT\_VALUE\gt [,\lt EXTRA\_INT\_VALUE...]
+\item --ela \lt EXTRA\_KEY\gt\ \lt EXTRA\_LONG\_VALUE\gt[,\lt EXTRA\_LONG\_VALUE...]
+\item --efa \lt EXTRA\_KEY\gt\ \lt EXTRA\_FLOAT\_VALUE\gt[,\lt EXTRA\_FLOAT\_VALUE...]
+\item -n \lt COMPONENT\gt] [-f \lt FLAGS\gt
+\item --grant-read-uri-permission] [--grant-write-uri-permission]
+\item --debug-log-resolution] [--exclude-stopped-packages]
+\item --include-stopped-packages]
+\item --activity-brought-to-front] [--activity-clear-top]
+\item --activity-clear-when-task-reset] [--activity-exclude-from-recents]
+\item --activity-launched-from-history] [--activity-multiple-task]
+\item --activity-no-animation] [--activity-no-history]
+\item --activity-no-user-action] [--activity-previous-is-top]
+\item --activity-reorder-to-front] [--activity-reset-task-if-needed]
+\item --activity-single-top] [--activity-clear-task]
+\item --activity-task-on-home
+\item --receiver-registered-only] [--receiver-replace-pending]
+\item --selector
+\item \lt URI\gt\ | \lt PACKAGE\gt\ | \lt COMPONENT\gt
+\end{coloredenumerate}
+
+\subsubsection[通过package name启动应用]{通过package name启动应用}
+am start -n \lt package-name\gt/\lt package-name.activity-name\gt
+
+如：am start -n zte.com.cn.camera/zte.com.cn.camera.Camera\\
+可以简写为：\\
+am start -n zte.com.cn.camera/.Camera
+
+\subsubsection[通过Intent启动应用]{通过Intent启动应用}
+am start -a android.intent.action.CALL -d tel:10086
+
+\subsection[启动Service]{启动Service}
+am startservice \lt intent\gt
+
+\subsection[关闭应用]{\underline{关闭应用}}
+am force-stop \lt package-name\gt
+
+\subsection[发送广播]{发送广播}
+am broadcast \lt intent\gt
+
+\subsection[dump heap]{dump heap}
+am dumpheap \lt process\gt\ \lt file\gt
+
+\begin{description}
+\item[process:] 可以是pid，也可以是进程名称（一般为package name）
+\item[file:] 设备上的文件路径
+\end{description}
+如：am dumpheap zte.com.cn.camera /sdcard/camera.hprof
+
+\subsection[监视系统运行]{监视系统运行}
+am monitor
+
+启动、恢复app时都会有相应的package name打印。此方法可以很快得知设备上某个应用的package name.
+
+\subsection[设置设备的显示尺寸、显示密度]{设置设备的显示尺寸、显示密度}
+am display-size [reset|WxH]
+
+am display-density [reset|density]
+
+其中，WxH、density均为数值。
+
+\section[获取系统属性列表]{获取系统属性列表}
+\hspace*{2ex}命令：getprop\par\vspace{2ex}
+该命令打印出当前系统属性(SystemProperties)列表，其中包括dalvik heapsize等。\par
+如：[dalvik.vm.heapsize]: [256m]
+
+\section[Android上的top命令]{Android上的top命令}
+相比于Linux，top命令在android上被大大简化了。
+\cmd{top [-m max\_procs] [-n iterations] [-d delay] [-s sort\_column] [-t] [-h]}
+\begin{coloredenumerate}
+\item -m max\_procs: 最多显示max\_procs个进程信息(默认显示所有进程信息)
+\item -n iterations: 刷新iterations次就退出(默认一直刷新)
+\item -d delay: 两次刷新之间的时间间隔(单位是秒)
+\item -s sort\_column: 按照哪一行进行排序，可选项为：cpu,vss,rss,thr
+\item -t: 显示线程号而非进程号
+\item -h: 打印帮助信息
+\end{coloredenumerate}
+输出信息解释：
+
+\begin{center}
+\begin{tabular}{llllllllll}
+PID & PR & CPU\% & S & \#THR & VSS & RSS & PCY & UID & Name\\ \hline
+4145 & 3 & 0\% & S & 14 & 549400K & 89172K & bg & u0\_a11 & zte.com.cn.camera
+\end{tabular}
+\end{center}
+\begin{coloredenumerate}
+\item PID: 进程号
+\item PR: Priority，进程优先级(数字越小，优先级越高)
+\item CPU\%: 进程占用CPU的百分比
+\item S: Status，进程状态：R(run)、S(sleep)、Z(zombie)
+\item \#THR: 进程当前使用的线程数量
+\item VSS: Virtual Set Size 虚拟耗用内存(包含共享库占用的内存)
+\item RSS: Resident Set Size 实际使用物理内存(包含共享库占用的内存)
+\item PCY: 进程前台/后台运行(bg/fg)，对应的单词不清楚
+\item UID: user id
+\item Name: 进程名称，在Linux上为启动进程的命令
+\end{coloredenumerate}
+注意：VSS、RSS中的"K"表示kilo bits而非kilo bytes。\par
+示例：
+\cmd{adb shell top -d 5 -s rss -m 10 -n 3}
+每隔5s显示一次系统内存占用量最多的10个进程，总共显示3次。
+
+\section[使用screencap命令进行屏幕截图]{使用screencap命令进行屏幕截图}
+利用screencap在电脑上通过adb shell进行手机屏幕截图，
+截取的图片保存到当前目录下，文件名以当前系统时间命名，
+所以可以通过“程序”实现自动截图。Windows批处理如下：\par\bigskip
+\inputminted[linenos,tabsize=4,bgcolor=srcbg]{bash}{srcdir/capture.bat}

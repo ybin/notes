@@ -98,9 +98,12 @@
 \titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{1em}{}
 %\titlespacing*{章节命令}{左边距}{上文距}{下文距}[右边距]
 \titlespacing*{\section}{0pt}{2\baselineskip}{\parsep}
+\usepackage{titletoc}
+%\titlecontents{标题层次}[左间距]{整体格式}{标题序号}{标题内容}{指引线和页码}[下间距]
+%\titlecontents{subsection}[4em]{}{\contentslabel{3em}}{}{\titlerule*[1em]{$\cdot$}\contentspage}
 
 
-\usepackage{hyperref}
+\usepackage[colorlinks=true,linkcolor=blue,linktoc=section]{hyperref}
 
 %%% perfect source code display
 \usepackage{minted}

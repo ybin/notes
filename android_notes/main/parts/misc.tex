@@ -1,0 +1,209 @@
+﻿
+\section[关于package的UID]{关于package的UID}
+在安装apk时，android为application分配一个uid，每个app一个uid，除非使用sharedUid。
+uid不会随着app的启动、关闭而改变，而且重新安装似乎不会改变uid. 但是文档声明只保证
+app在device上时uid不变，如果没有package使用某个uid，该uid将会被删掉。
+查看app的uid有两个方法：
+\begin{coloredenumerate}
+  \item 查看系统的packages.xml文件（/data/system/packages.xml），从中找到app对应的package name，
+	      其中便有app的uid
+  \item 运行app，使用top/ps命令找到对应的pid，然后到/proc目录下查看该进程的信息：\\
+    		cat /proc/\lt pid\gt/status
+\end{coloredenumerate}
+
+
+\section[Manifest文件中的属性]{Manifest文件中的属性}
+\subsection[Activity的noHistory属性]{Activity的noHistory属性}
+android:noHistory="true"
+
+该属性置为true时，当Activity A被别的Activity B覆盖时，该Activity A会退出，
+而无法从B返回A，也就是说A不会成为Activity Stack上的“历史”Activity。
+如A正在运行，此时来电，phone结束后，A finish()，但是如果A正在运行，用户按HOME键，
+A不会finish()，因为此时A仍在栈顶。
+
+\subsection[process属性]{process属性}
+process属性可以用在所有的组件(component)中，用来重新命名组件运行的进程名称(进程名称默认为package name)，
+如果process属性值以冒号(:)开头，则组件将在新的进程中运行，该进程为application的私有进程。\par
+\begin{bashcode}
+u0_a82    9981  1821  540268 71520 ffffffff 4006e25f S com.example.aidldemo
+u0_a82    9995  1821  512052 45268 ffffffff 4006e25f S com.example.aidldemo:Service
+\end{bashcode}
+
+此时一个package中的组件会被安排到多个进程中执行，而如果不同进程中的组件都要用到preference，
+则要在获取preference对象的时候使用Context.MULTI\_PROCESS标志，而非Context.PRIVATE标志，
+否则通过process属性设置的组件无法获取到正确的preference对象。
+
+\subsection[exported属性]{exported属性}
+表明组件是否为私有组件，及外部组件是否可以调用该组件。
+\begin{description}
+  \item[true:] 该组件为公开的，外部组件可以调用该组件。
+  \item[false:] 该组件为私有的，外部无法看到该组件，即使该组件声明了intent-filter也无能为力。
+\end{description}
+
+\section[onUserLeaveHint()]{onUserLeaveHint()}
+onUserLeaveHint()函数用于提示系统当用户离开之后该怎么做。
+举例来说：当app正在运行，此时来电，app的onPause()被执行；但是，当HOME键被按下时，
+系统会先调用onUserLeaveHint()，然后再调用onPause()，可以在该中调用finish()，
+达到HOME键退出的目的。
+
+\section[通过Intent监视SCREEN\_ON、SCREEN\_OFF动作]{通过Intent监视SCREEN\_ON、SCREEN\_OFF动作}
+这里要做的事情是：
+\begin{coloredenumerate}
+  \item 接收SCREEN\_OFF系统消息
+  \item 点亮屏幕
+  \item 接收SCREEN\_ON系统消息
+  \item 播放视频文件(keep\_screen\_on)
+\end{coloredenumerate}
+\subsection[定义Broadcast receiver接收Intent]{定义Broadcast receiver接收Intent}
+\inputminted[linenos,tabsize=4,bgcolor=srcbg,fontsize=\small]{java}{srcdir/ScreenBroadcastReceiver.java}
+
+\subsection[在Manifest文件中声明receiver]{在Manifest文件中声明receiver}
+\inputminted[linenos,tabsize=4,bgcolor=srcbg]{xml}{srcdir/AndroidManifest.xml}
+
+\subsection[使用service注册receiver]{使用service注册receiver}
+\inputminted[linenos,tabsize=4,bgcolor=srcbg]{java}{srcdir/ReceiverService.java}
+
+\subsection[启动Service的桌面应用]{启动Service的桌面应用}
+\mint[bgcolor=srcbg]{java}|startService(new Intent(this, ReceiverService.class));|
+
+\section[通过Intent监听系统启动消息]{通过Intent监听系统启动消息}
+知道系统何时启动有时是很重要的，比如系统启动之后立刻启动后台Service监听事件。
+当Android系统启动完毕之后，会发送BOOT\_COMPLETE intent，通过在Receiver中监听该
+intent即可：\par
+\mint[bgcolor=srcbg]{xml}|<action android:name="android.intent.action.BOOT_COMPLETED"/>|
+
+不过这需求特殊的权限：\par
+\mint[bgcolor=srcbg]{xml}|<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />|
+
+
+\section[如何在代码中设置View/ViewGroup的尺寸]{如何在代码中设置View/ViewGroup的尺寸}
+在代码中动态设置View的尺寸是很常见的，比如横竖屏切换时，为了保持视频画面的尺寸，
+就需要重新设置SurfaceView/TextureView/VideoView的尺寸。设置的方法是使用LayoutParams类，
+LayoutParams类有多种，这里使用的必须是：该View的父类的LayoutParams类。
+
+\begin{minted}[linenos,tabsize=4,bgcolor=srcbg]{java}
+LayoutParams lp = mSurfaceView.getLayoutParams();
+lp.width = frameWidth;
+lp.height = frameHeight;
+mSurfaceView.setLayoutParams(lp);
+mSurfaceView.requestLayout();
+\end{minted}
+
+有时getLayoutParams()返回null，这时就要根据该View在XML文件中定义时，其上层对象的类型，
+定义不同LayoutParams种类。不过，应该首先尝试getLayoutParams()，因为重新定义的
+LayoutParams对象需要重新设置其他信息，比如对齐方式等，而get出来的对象都已经设置好了
+(在XML文件中)。
+
+\section[捕获所有物理按键事件]{捕获所有物理按键事件}
+\begin{minted}[linenos,tabsize=4,bgcolor=srcbg]{java}
+@Override
+public boolean onKeyDown(int keyCode, KeyEvent event) {
+  switch(keyCode) {
+      default: {
+          Log.d(TAG, "keyCode: " + keyCode + ", event: " + event.getAction());
+          finish();
+          return true;
+      }
+  }
+}
+\end{minted}
+
+\section[keep\_screen\_on]{keep\_screen\_on}
+\begin{minted}[linenos,tabsize=4,bgcolor=srcbg]{java}
+private void keepScreenOn(boolean on) {
+  if(on) {
+      getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+  } else {
+      getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+  }
+}
+\end{minted}
+
+\section[获取屏幕物理尺寸]{获取屏幕物理尺寸}
+\begin{minted}[linenos,tabsize=4,bgcolor=srcbg]{java}
+private void getScreenSize() {
+  DisplayMetrics mDisplayMetrics = new DisplayMetrics();
+  getWindowManager().getDefaultDisplay().getMetrics(mDisplayMetrics);
+  mScreenWidth = mDisplayMetrics.widthPixels;
+  mScreenHeight = mDisplayMetrics.heightPixels;
+}
+\end{minted}
+
+\section[使系统静音]{使系统静音}
+\begin{minted}[linenos,tabsize=4,bgcolor=srcbg]{java}
+private void muteMusicStream(boolean mute) {
+  AudioManager mAudioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
+  Log.d(TAG, "mute music stream: " + mute);
+  if(mAudioManager != null) {
+      mAudioManager.setStreamMute(AudioManager.STREAM_MUSIC, mute);
+  }
+}
+\end{minted}
+
+\section[使用渐变背景色模拟动画]{\underline{使用渐变背景色模拟动画}}
+\begin{minted}[linenos,tabsize=4,bgcolor=srcbg]{java}
+mPreviewButton = (LinearLayout) findViewById(R.id.footer);
+mPreviewButton.setOnClickListener(new OnClickListener() {
+  @Override
+  public void onClick(View v) {
+      v.setBackgroundResource(R.drawable.footer_transition);
+      ((TransitionDrawable)v.getBackground()).startTransition(300);
+      preview();
+  }
+});
+\end{minted}
+
+R.drawable.footer\_transition的定义如下：
+
+\begin{minted}[linenos,tabsize=4,bgcolor=srcbg]{xml}
+<!-- drawable/footer_transition.xml -->
+<?xml version="1.0" encoding="utf-8"?>
+<transition xmlns:android="http://schemas.android.com/apk/res/android" >
+  <item android:drawable="@color/trans_start_color" />
+  <item android:drawable="@color/footer_background_color" />
+</transition>
+\end{minted}
+
+%\meaning\part
+%\the\headsep
+%\the\headheight
+
+\section[Activity的启动模式]{Activity的启动模式}
+android:launchMode变量，它与Intent的FLAG\_ACTIVITY\_*变量共同作用，决定如何启动Activity来处理Intent。
+
+\begin{description}
+  \item[``standard'':] 一个Intent调起一个Activity实例来响应它，一一对应；
+  \item[``singleTop'':] 一个Intent调起一个Activity实例，除非它恰好位于Task Stack顶部；
+  \item[``singleTask'':] Activity只存在于Task Stack的栈底，该栈中允许有其他Activity；
+  \item[``singleInstance'':] Activity实例“独占”一个Task Stack。
+\end{description}
+
+四个值分为两组：
+
+\begin{description}
+  \item[``standard''、``singleTop'':] Activity可以有多个实例，而且可以处于多个Task Stack中；
+  \item[``singleTask''、``singleInstance'':] Activity只有一个实例，而且都处于Task Stack底部。
+\end{description}
+
+
+\section[通过Intent传递对象]{通过Intent传递对象}
+Intent发送端：\par
+\begin{javacode}
+Intent intent = new Intent(this, ReceiveActivity.class);
+Bundle bundle = new Bundle();
+bundle.putParcelable("book_info", new Book("Android APP Dev", 42));
+intent.putExtras(bundle);
+
+startActivity(intent);
+\end{javacode}
+
+接收端：\par
+\begin{javacode}
+Intent intent = getIntent();
+Bundle bundle = intent.getExtras();
+Book book = (Book) bundle.getParcelable("book_info");
+book.print();
+\end{javacode}
+
+Book类的定义：\par
+\inputminted[linenos,tabsize=4,bgcolor=srcbg]{java}{srcdir/ParcableBook.java}

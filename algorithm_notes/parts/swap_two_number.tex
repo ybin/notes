@@ -1,0 +1,40 @@
+﻿\section[Swap two numbers]{两数互换}
+互换两个数的值，常规做法是使用中间变量，但是利用位操作却可以省去中间变量，
+该操作与语言无关，只用到位操作“xor”，
+
+\begin{cppcode}
+// C语言版实现
+int i = 42;
+int j = 24;
+printf("i=%d, j=%d\n", i, j);
+i = i ^ j;
+j = i ^ j;
+i = i ^ j;
+// 更加简洁的实现如下
+// i ^= j = ^= i ^= j;
+printf("i=%d, j=%d\n", i, j);
+\end{cppcode}
+
+原理是什么？
+
+"xor"操作与顺序无关，即x <xor> y == y <xor> x，不过，为了便于理解，我们
+称其中一个操作位为“操作因子”，
+
+\centerline{x <xor> factor = y}
+
+我们说：x经操作因子factor，变为y。观察factor的bit，如果是1表示“改变”，
+如果是0表示“不变”，于是factor就变成了一个映射的对应关系，x、y分别是
+由bit位组成的集合，并且该映射是一一对应的。
+
+进一步，考虑到二进制的特殊性，“改变”无非就是0变1或者1变0，于是任意一个bit
+经过两次“改变”就变回了自身，于是，
+
+\centerline{(x <xor> factor) <xor> factor == x}
+
+于是我们得出这样的结论：
+
+\begin{cppcode}
+x <xor> y = z
+x <xor> z = y // x <xor> (x <xor> y) == y 经两次操作变回自身
+y <xor> z = x
+\end{cppcode}
