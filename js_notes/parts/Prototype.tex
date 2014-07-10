@@ -3,71 +3,59 @@ JavaScript的继承使用的是原型链(prototype chain)方式，原型链方�
 实则不然，理解原型链需从两方面进行：constructor模式、prototype模式。
 
 \subsection[constructor mode]{constructor mode}
-JavaScript 中没有类的概念，我们知道类是OOP中的"模型"，那JS中如何定义模型呢？
-答案是“构造函数”，在JS中，new关键词后面跟的是函数，构造函数。构造函数定义了
-对象的模型，JS中的任何对象都有constructor属性，该属性是对象到其构造函数的通道。
-但是如果手动修改constructor属性，该通道也就被改变了，所以通过该属性寻找构造函数
-是十分危险的事情，但有时修改构造函数是必须的。
+JavaScript 中没有类的概念，我们知道类是OOP中的"对象模型"，
+那JS中的对象模型又是什么呢？答案是“构造函数”。
+在JS中，new关键词后面跟的便是构造函数。
+
+另外，JS中的任何对象都有constructor属性，但是这个属性默认却并不表示
+该对象的构造函数(对象)，而是\emph{"构造函数".prototype.constructor}，
+如此一来，整个原型链中的对象的constructor都等于原型链顶端对象的constructor
+属性，这样constructor便可以用来表明某个对象是隶属于哪个类别的了，
+有点儿类似于Java中instanceof的意思。如果对象的构造函数没有prototype
+属性，则该对象的constructor属性等于其构造函数(对象)。
 
 \begin{javascriptcode}
-  // 如果Foo是个空函数，即函数体中什么都没有，
-  // 那么Foo实例的constructor就会是Object函数，
-  // 这太坑爹了吧！
-  function Foo() {foo:1};
-  function Bar() {bar:1};
-  Bar.prototype = new Foo();
-  // 这一行是必须的，否则继承链就会紊乱，
-  // 因为new新的实例时，新实例的constructor默认设置为
-  // 构造函数的prototype.constructor，除非构造函数
-  // 没有prototype属性，太坑爹了！
-  var bar0 = new Bar();
-  // bar0.constructor === Foo; // true!!!
-  // 所以，修改构造函数的prototype属性时，后面跟的必定是
-  // 修改prototype对象构造函数这一步！！！
-  Bar.prototype.constructor = Bar;
-  var bar = new Bar();
-  // bar.constructor === Bar; // true
+// constructor是不是完成了类似Java instanceof的功能？！
+var myObj = new Array();
+
+if(myObj.constructor === Array) {
+  document.write('This is an Array.');
+} else if(myObj.constructor === Boolean) {
+  document.write('This is a Boolean.');
+} else if(myObj.constructor === Date) {
+  document.write('This is a Date.');
+} else if(myObj.constructor === String) {
+  document.write('This is a String.');
+}
+\end{javascriptcode}
+
+然而，当我们创建一个新类型的对象时，就需要手动设置constructor属性，
+这通过设置新类型构造函数的prototype.constructor属性来完成，
+
+\begin{javascriptcode}
+// 我们要创建一个新的类型Person，类似于Array, Date, String等
+function Person(name) {
+  this.name = name;
+}
+Person.prototype.sayHello = function() {
+  alert("I'm " + this.name);
+}
+// 重新设置constructor属性
+Person.prototype.constructor = Person;
+
+var peter = new Person(42);
+peter.constructor === Person; // true
 \end{javascriptcode}
 
 \subsection[prototype mode]{prototype mode}
 可以给构造函数增加"prototype"属性(函数也是对象哦！)，其值为一个对象，以此来
-达到对象的“继承”，这就是prototype mode。prototype属性只在函数中起作用。
-另外需注意：
+达到对象的“继承”，这就是prototype mode。
 
-\emph{构造函数里的prototype对象是给其“实例”使用的！}
+\emph{prototype属性只在函数中起作用！}
 
-要想取得对象本身的prototype对象，则需要通过其constructor，
+\emph{构造函数prototype属性表示的对象是给其“实例”使用的！}
 
-\begin{javascriptcode}
-  // 构造函数与普通函数唯一的区别是首字母大写！
-  function Foo() {};
-  // 构造函数的prototype对象是给其“实例”使用的
-  Foo.prototype = {
-    foo:42
-  };
-
-  // 以Foo为模型，定义新的对象
-  var obj = new Foo();
-  // 对象的原型需要通过构造函数获得，而不是prototype属性
-  var pt = obj.constructor.prototype; // 等于 {foo:42}
-\end{javascriptcode}
-
-容易造成迷惑的是函数的prototype属性及函数对象本身的prototype对象，
-
-\begin{javascriptcode}
-var pt = {
-    bar: 42
-};
-function Bar() {};
-// 函数的prototype属性，供其实例对象使用
-Bar.prototype = pt;
-alert(Bar.constructor === Function); // true
-alert(Bar.constructor.prototype === Function.prototype); // true
-
-// 注意：Object, Function, Array, Date都是函数(Math是对象)
-\end{javascriptcode}
-
-以下三种继承方式，其prototype chain是完全不同的。
+下面是实例解析，这三种继承方式其prototype chain是完全不同的。
 
 \begin{javascriptcode}
   // Foo 构造函数
@@ -88,7 +76,7 @@ alert(Bar.constructor.prototype === Function.prototype); // true
 
 \begin{javascriptcode}
   Bar.prototype = new Foo();
-  // 这是必须的！
+  // 如果要创建新类型，下面这行是必要的
   Bar.prototype.constructor = Bar;
 \end{javascriptcode}
 

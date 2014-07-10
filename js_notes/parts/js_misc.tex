@@ -17,7 +17,41 @@ false.toString();
 'abc'.toString();
 \end{javascriptcode}
 
+\section[null v.s. undefined]{null v.s. undefined}
+\begin{description}
+  \item[null: ] 对象存在但是值为空(nothing)，typeof(null)==='object'
+  \item[undefined: ] 对象不存在，typeof(undefined)==='undefinded'
+  \item[PK: ] null==undefinded, null!==undefinded
+\end{description}
+
+为何存在undefinded？
+
+undefined表示“不存在”(nothing)，在Java中，如果对象的某个属性不存在，
+那么编译的时候就会报错，导致编译无法通过。但是JS并没有编译这一步，
+它该如何表示“不存在”这个概念呢？当然用null来表示也是可以的，毕竟
+“不存在”和“存在但没有任何值”几乎没有差别，但是JS更加细化了这一点，
+用一个单独的undefined表示“不存在”，而Java由于存在编译期也就用不到
+undefined这样的表述了。
+
 
 \section[如何判断一个对象是否存在]{如何判断一个对象是否存在}
+判断对象是否存在，
 
-\section[null v.s. undefined]{null v.s. undefined}
+\begin{javascriptcode}
+if(typeof(myObj)==='undefinded') {
+  var myObj = { };
+} else {
+  // myObj存在（但是值可能为空）
+}
+\end{javascriptcode}
+
+判断对象是否存在，并且是否为空，
+
+\begin{javascriptcode}
+if(!myObj) {
+  // myObj === undefinded 或者 myObj === null
+  var myObj = { };
+} else {
+  // myObj 存在且不为null
+}
+\end{javascriptcode}
