@@ -1,0 +1,227 @@
+﻿\section[Prototype]{Prototype}
+JavaScript的继承使用的是原型链(prototype chain)方式，原型链方式看似简单，
+实则不然，理解原型链需从两方面进行：constructor模式、prototype模式。
+
+\subsection[constructor mode]{constructor mode}
+JavaScript 中没有类的概念，我们知道类是OOP中的"模型"，那JS中如何定义模型呢？
+答案是“构造函数”，在JS中，new关键词后面跟的是函数，构造函数。构造函数定义了
+对象的模型，JS中的任何对象都有constructor属性，该属性是对象到其构造函数的通道。
+但是如果手动修改constructor属性，该通道也就被改变了，所以通过该属性寻找构造函数
+是十分危险的事情，但有时修改构造函数是必须的。
+
+\begin{javascriptcode}
+  // 如果Foo是个空函数，即函数体中什么都没有，
+  // 那么Foo实例的constructor就会是Object函数，
+  // 这太坑爹了吧！
+  function Foo() {foo:1};
+  function Bar() {bar:1};
+  Bar.prototype = new Foo();
+  // 这一行是必须的，否则继承链就会紊乱，
+  // 因为new新的实例时，新实例的constructor默认设置为
+  // 构造函数的prototype.constructor，除非构造函数
+  // 没有prototype属性，太坑爹了！
+  var bar0 = new Bar();
+  // bar0.constructor === Foo; // true!!!
+  // 所以，修改构造函数的prototype属性时，后面跟的必定是
+  // 修改prototype对象构造函数这一步！！！
+  Bar.prototype.constructor = Bar;
+  var bar = new Bar();
+  // bar.constructor === Bar; // true
+\end{javascriptcode}
+
+\subsection[prototype mode]{prototype mode}
+可以给构造函数增加"prototype"属性(函数也是对象哦！)，其值为一个对象，以此来
+达到对象的“继承”，这就是prototype mode。prototype属性只在函数中起作用。
+另外需注意：
+
+\emph{构造函数里的prototype对象是给其“实例”使用的！}
+
+要想取得对象本身的prototype对象，则需要通过其constructor，
+
+\begin{javascriptcode}
+  // 构造函数与普通函数唯一的区别是首字母大写！
+  function Foo() {};
+  // 构造函数的prototype对象是给其“实例”使用的
+  Foo.prototype = {
+    foo:42
+  };
+
+  // 以Foo为模型，定义新的对象
+  var obj = new Foo();
+  // 对象的原型需要通过构造函数获得，而不是prototype属性
+  var pt = obj.constructor.prototype; // 等于 {foo:42}
+\end{javascriptcode}
+
+容易造成迷惑的是函数的prototype属性及函数对象本身的prototype对象，
+
+\begin{javascriptcode}
+var pt = {
+    bar: 42
+};
+function Bar() {};
+// 函数的prototype属性，供其实例对象使用
+Bar.prototype = pt;
+alert(Bar.constructor === Function); // true
+alert(Bar.constructor.prototype === Function.prototype); // true
+
+// 注意：Object, Function, Array, Date都是函数(Math是对象)
+\end{javascriptcode}
+
+以下三种继承方式，其prototype chain是完全不同的。
+
+\begin{javascriptcode}
+  // Foo 构造函数
+  function Foo() { foo1:1 };
+  foo.prototype = { foo2:2 };
+
+  // Bar 构造函数
+  function Bar() { bar1:11 };
+
+  // 这里填写继承关系，见下面三种继承方式
+
+  var foo = Foo();
+  var bar = Bar();
+\end{javascriptcode}
+
+\subsubsection[父子关系]{父子关系}
+第一种继承方式：父子关系
+
+\begin{javascriptcode}
+  Bar.prototype = new Foo();
+  // 这是必须的！
+  Bar.prototype.constructor = Bar;
+\end{javascriptcode}
+
+继承链：\\
+bar\\
+=> Foo的实例（即new Foo()）\\
+=> Foo.prototype对象\\
+=> Object.prototype对象（即{}，空对象）\\
+foo与bar是父子关系。这是最常见的继承方式。
+
+\subsubsection[兄弟关系]{兄弟关系}
+第二种继承方式：兄弟关系
+
+\begin{javascriptcode}
+  Bar.prototype = Foo.prototype;
+\end{javascriptcode}
+
+继承链：\\
+bar\\
+=> Foo.prototype对象\\
+=> Object.prototype对象（即{}，空对象）\\
+foo\\
+=> Foo.prototype对象\\
+=> Object.prototype对象（即{}，空对象）\\
+foo与bar是兄弟关系。
+
+\subsubsection[陌生关系]{陌生关系}
+第三种继承方式：陌生关系
+
+\begin{javascriptcode}
+  Bar.prototype = Foo;
+\end{javascriptcode}
+
+继承链：\\
+bar\\
+=> Foo对象（函数也是对象）\\
+=> Foo.constructor.prototype（即Function.prototype）\\
+foo\\
+=> Foo.prototype\\
+=> Object.prototype对象（即{}，空对象）\\
+Foo的实例与Bar的实例没有关系。
+
+
+\section[变量声明、函数声明提升]{变量声明、函数声明提升}
+名词解释：\\
+声明(Declaration)：\\
+\begin{javascriptcode}
+  var joe;
+\end{javascriptcode}
+
+初始化(Initialization)：\\
+\begin{javascriptcode}
+  joe = 'plumber';
+\end{javascriptcode}
+
+JS代码的解析分为两部分：预编译和解释执行。
+\begin{description}
+  \item[预编译阶段]：\\
+    对var定义的变量(包括全局、局部变量)进行声明，初始值设置为undefined；\\
+    对定义式的函数(即：function myFunc() \{\})进行定义(这样函数就可用了)。
+  \item[解释执行阶段]：\\
+    对var定义的变量执行赋值操作(如果有的话)；
+    所有语句顺序执行。
+\end{description}
+
+示例：\\
+\begin{javascriptcode}
+  function f() {
+    var a = 'a';
+    // other code
+    var b = 'b';
+    // other code
+    c();
+    function c() {
+      var aa = 'aa';
+      // another code
+      var bb = 'bb';
+      // another code
+    }
+    // other code
+  }
+\end{javascriptcode}
+
+等价于，
+
+\begin{javascriptcode}
+  function f() {
+    var a, b; // 变量声明
+    function c() {
+      var aa, bb; // 变量声明
+      aa = 'aa';
+      // another code
+      bb = 'bb';
+      // another code
+    }
+    a = 'a';
+    // other code
+    b = 'b';
+    // other code
+    c();
+    // other code
+  }
+\end{javascriptcode}
+
+测试：alert输出时什么呢？
+
+\begin{javascriptcode}
+  var myvar = 'my value';
+  (function () {
+    alert(myvar); // 这个myvar是局部变量
+    var myvar = 'local value';
+    alert(myvar); // 输出：local value
+  })();
+\end{javascriptcode}
+
+答案：undefined
+
+函数声明也是一样的，所以可以在定义函数之前就使用函数，
+因为“使用”是在解释执行阶段，在此之前函数已经定义完成了！
+
+这也就是以下两种定义函数的方式之差别，
+
+\begin{javascriptcode}
+func_1(); // 报错！因为此时func_1 === undefined
+func_2(); // 正常！因为此时func_2的定义已经完成了
+
+// func_1的声明被提升到预编译阶段，但是赋值却是在解释执行阶段
+var func_1 = function() { };
+// 函数定义在预编译阶段就完成了
+function func_2() { }
+\end{javascriptcode}
+
+注意，预编译、解释执行两个阶段针对每个JS code block进行一次，
+即第一个code block预编译然后解释执行，第二个code block预编译
+然后解释执行，依次顺序遍历所有code block。JS code放到HTML文件
+中和通过src属性引入外部js文件没有任何区别。

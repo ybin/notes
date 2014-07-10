@@ -1,0 +1,23 @@
+﻿\section[JavaScript里的对象]{JavaScript里的对象}
+在JS里，对象其实就是Key-Value集合(键-值对集合)！
+每一对儿K-V叫做一个“属性”，没有函数，因为函数也是一个属性。
+
+\emph{一切皆对象，除了undefined！}
+
+\begin{javascriptcode}
+// toString()是Object.prototype对象(Object是一个构造函数)的一个函数(属性)，
+// JS的原型链从Object.prototype对象开始。
+
+// boolean值是对象
+true.toString();
+false.toString();
+// number是对象
+(42).toString();
+42..toString(); // 第一个“点”是小数点
+'abc'.toString();
+\end{javascriptcode}
+
+
+\section[如何判断一个对象是否存在]{如何判断一个对象是否存在}
+
+\section[null v.s. undefined]{null v.s. undefined}
