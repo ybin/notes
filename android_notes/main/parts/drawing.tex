@@ -1,0 +1,45 @@
+﻿\section[绘图那些事儿]{绘图那些事儿}
+在Android里绘图有两种途径：Canvas和OpenGL ES，前者兼容性广，放之四海而皆准，
+各种Android版本通吃，后者性能好，但是兼容性不好，尤其是在较低的版本中。
+无论如何，Android关心的只是Bitmap，而两者只是生成Bitmap的手段而已，Bitmap
+才是最终目的。
+
+现在我们暂且放下OpenGL ES，把注意力关注到Canvas上面。
+
+回到现实世界，绘画是需要一些基本设备的：画布和画笔，人拿着画笔在画布上作画。
+但是在Android中没有“人”，于是我们抽象一下，赋予画布绘画的功能，如画布可以
+画点，画线，画圆，画椭圆，甚至给它一个定义好的Path它也可以画出来。至于画笔，
+可以设置它的颜色，样式(stroke or fill or stroke \& fill)，甚至设置画笔让其
+绘制阴影(shadow layer)。
+
+\subsection[Canvas]{Canvas}
+\subsubsection[如影随形的Bitmap]{如影随形的Bitmap}
+Canvas只是负责绘制，最终绘制结果要保存到Bitmap中，并将该bitmap交给Android
+去呈现，所以Canvas必定有一个bitmap跟随，否则画了半天也白画。
+
+\subsubsection[各种绘制操作]{各种绘制操作}
+Canvas可以绘制点(point)、线(line)、圆(circle)、椭圆(oval)、矩形(rectangle)、
+圆角矩形(round rect)、颜色(color)、弧形(arc)、bitmap、文本(text)。
+
+\subsubsection[图像变换]{图像变换}
+Canvas上当然可以绘制多个图形，每个图形都有不同的位置，大小，倾斜角度等，
+这需要Canvas具有
+
+变换(translate, rotate, skew, scale)
+
+\subsubsection[画布裁剪]{画布裁剪}
+裁剪(clip)
+
+\subsubsection[其他]{其他}
+save() \& restore
+
+\subsection[Paint]{Paint}
+
+字体相关操作
+
+样式(stroke, fill, stroke and fill)
+
+颜色(着色器)
+
+笔画的宽度(stroke width)
+
