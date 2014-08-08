@@ -1,0 +1,77 @@
+
+
+% possible options include:
+% font size ('10pt', '11pt' and '12pt'),
+% paper size ('a4paper', 'letterpaper', 'a5paper', 'legalpaper', 'executivepaper' and 'landscape')
+% font family ('sans' and 'roman')
+\documentclass[12pt,a4paper,roman]{moderncv}
+
+% moderncv 主题
+\moderncvstyle{oldstyle} % 选项参数是 ‘casual’, ‘classic’, ‘oldstyle’ 和 ’banking’
+\moderncvcolor{grey}    % 选项参数是 ‘blue’ (默认)、‘orange’、‘green’、‘red’、‘purple’ 和 ‘grey’
+%\nopagenumbers{}       % 消除注释以取消自动页码生成功能
+
+% 字符编码
+\usepackage[utf8]{inputenc} % 替换你正在使用的编码
+%\usepackage{CJKutf8}
+
+% 调整页面出血
+\usepackage[scale=0.75]{geometry}
+%\setlength{\hintscolumnwidth}{3cm} % 如果你希望改变日期栏的宽度
+
+%%% xeCJK
+\usepackage{xeCJK}
+\setCJKmainfont[BoldFont=Adobe Heiti Std]{Adobe Song Std}
+\setCJKsansfont[BoldFont=Adobe Heiti Std]{Adobe Song Std}
+\setCJKmonofont[BoldFont=Adobe Heiti Std]{Adobe Song Std}
+\XeTeXlinebreaklocale "zh"
+\XeTeXlinebreakskip=0pt plus 1pt minus 0.1pt
+
+% 个人信息
+\name{xxx}{}
+%\title{简历题目}                              % 可选项、如不需要可删除本行
+\phone[mobile]{xxx~xxxx~xxxx}              % 可选项、如不需要可删除本行
+\email{xxx@xxx.xxx}                    % 可选项、如不需要可删除本行
+%\extrainfo{附加信息 (可选项)}                 % 可选项、如不需要可删除本行
+%\photo[64pt][0.4pt]{picture}                  % ‘64pt’是图片必须压缩至的高度、‘0.4pt‘是图片边框的宽度 (如不需要可调节至0pt)、’picture‘ 是图片文件的名字;可选项、如
+
+\begin{document}
+\maketitle
+
+
+\section{教育经历}
+\cventry{2004 -- 2008}{学士}{~山东大学(威海)}{}{}{信息与计算科学专业(数学院)}
+\vspace{.35em}
+\cventry{2008 -- 2011}{硕士}{~中南大学}{}{}{基础数学专业}  % 第3到第6编码可留白
+
+
+\section{工作经历}
+\cventry{2011 -- 现在}{软件开发工程师}{xxxx}{西安}{}{Android应用软件开发\\[.5em]%
+工作内容:%
+\begin{itemize}%
+\item 照相机(Camera)应用层开发;
+\item 音乐播放器(Music Player)开发;
+\item 其他Android平台应用开发
+\end{itemize}}
+
+\section{编程技能}
+\cvitemwithcomment{Java}{}{工作的主要工具} % 语言、水平、评价
+\cvitemwithcomment{C}{}{最喜欢的编程语言}
+\cvitemwithcomment{Linux Kernel}{}{一片向往的乐园，孜孜以求}
+\cvitemwithcomment{JavaScript}{}{OOP的另一种实现}
+\cvitemwithcomment{Clojure}{}{初探函数式编程}
+\cvitemwithcomment{Python,Bash,Bat etc}{}{玩过}
+
+\section{其他}
+\cvlistitem{Ubuntu}
+\cvlistitem{Git版本控制系统}
+\cvlistitem{\LaTeX{}排版系统}
+\cvlistitem{Emacs}
+
+\section{个人介绍}
+喜欢研究新鲜事物并深入探究；\\
+喜欢阅读，喜欢coding并乐在其中；\\
+聚会、派对的不活跃分子。
+
+\clearpage
+\end{document}
