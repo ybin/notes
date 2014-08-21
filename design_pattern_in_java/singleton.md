@@ -53,7 +53,9 @@ __有且仅有一个实例存在__。最普通的单例模式实现如下，
 	// version-3
 
 	public class Singleton {
-		private static Singleton instance;
+		// volatile 保证先写后读(happens-before)
+		private volatile static Singleton instance;
+
 		private Singleton() { /* initialization */ }
 		public static Singleton getInstance() {
 			// 这个检查，防止每次调用都同步，
@@ -209,4 +211,88 @@ N次反序列化不再产生N个新实例了，而是一个？No，一个都没�
 每次反序列化都会返回唯一的一个对象，而且该对象在第一次反序列化时已经
 获取到了序列化时的状态，目的达成！
 
+注意：`static`和`transient`的变量是无法序列化的！
+
 ##### Anti-reflect singleton #####
+
+##### The Enum way #####
+Enum，枚举。如，
+
+	public enum Day {
+		SUNDAY, MONDAY, TUESDAY, WEDNESDAY,
+    	THURSDAY, FRIDAY, SATURDAY
+	}
+
+	// 使用
+	public void printDay(Day d)	 {
+		switch(d) {
+			case MONDAY:
+				System.out.println("MONDAY");
+			// ...
+		}
+	}
+
+在C、C++中枚举类型的值其实就是整型，但是Java中不是，
+	
+	Day.A instanceof Day; // true
+	System.out.println(Day.MONDAY.toString()); // "MONDAY"
+
+
+
+Java中的枚举，
+
+1. 它创建了一个新的class，
+2. 同时在类载入时就创建了所有的对象(SUNDAY, MONDAY, ...)
+3. 而且规定该类型变量只能在已经创建的对象(第2步创建的对象)中取值
+
+如`Day`就是一个新的class，在类加载时就创建了七个值(`Day`类型的七个对象)，
+并且所有`Day`类型的变量只能在这七个对象中取值。
+
+既然`enum`其实就是`class`，那么当然可以定义属性和方法，
+
+	public enum Fruit {
+		// 定义两个实例，静态变量
+		APPLE(1.2, 4.5),	// 1.2 kilograms, 4.5 dollars/kg
+		ORANGE(2.3, 3.0);	// 2.3 kilograms, 3.0 dollars/kg
+		
+		// 下面的代码跟普通类定义一样，有属性有方法，有构造函数等
+		private String color;
+		private double price;
+		private double mass;
+
+		// 只允许private的构造函数，防止创建新的对象
+		private Fruit(double mass, double price) {
+			this.mass = mass;
+			this.price = price;
+		}
+		
+		// 需要花费多少钱
+		public double cost() {
+			return price * mass;
+		}
+	}
+
+	// 使用枚举
+	Fruit f = Fruit.APPLE; // or Fruit.ORANGE; 没有其他选择
+
+接下来我们利用`enum`定义单例，
+
+	public enum EnumSingleton {
+		INSTANCE; // 只有唯一一个实例
+
+		private EnumSingleton() { /* maybe initialize */ }
+
+		public void doSomething() {
+			System.out.println("do something...");
+		}
+	}
+
+	// 使用
+	EnumSingleton.INSTANCE.doSomething();
+
+该单例定义极为简单，甚至构造函数都可以省略，但是它却可以做到，
+
+1. 实例的唯一性。无法额外创建枚举实例，所以唯一性有保证。
+2. 多线程安全性。枚举实例是在类加载时创建的，所以是多线程安全的，但显然不是延迟加载的。
+3. 序列化安全性。枚举类型本身就做了序列化的操作，毕竟不可能同时存在两个`SUNDAY`实例。
+4. 实现极其简单。
