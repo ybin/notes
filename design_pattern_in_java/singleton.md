@@ -4,12 +4,14 @@
 Singleton，单例模式，正如其名字看上去那样，单例的目的在于
 __有且仅有一个实例存在__。最普通的单例模式实现如下，
 
+	// version-1
+
 	public class Singleton {
-		private Singleton instance;
+		private static Singleton instance;
 		// 禁用new操作符
 		private Singleton() { /* initialization */ }
 		// 获取单例实例
-		public Singleton getInstance() {
+		public static Singleton getInstance() {
 			if(instance == null) {
 				instance = new Singleton();
 			}
@@ -29,11 +31,13 @@ __有且仅有一个实例存在__。最普通的单例模式实现如下，
 
 可以看到这种情况下，单例模式被破坏了。既然如此，为了线程安全，那就同步吧！
 
+	// version-2
+
 	public class Singleton {
-		private Singleton instance;
+		private static Singleton instance;
 		private Singleton() { /* initialization */ }
 		// 仅仅只是添加了一个synchronized而已
-		synchronized public Singleton getInstance() {
+		synchronized public static Singleton getInstance() {
 			if(instance == null) {
 				instance = new Singleton();
 			}
@@ -46,10 +50,12 @@ __有且仅有一个实例存在__。最普通的单例模式实现如下，
 一个synchronized关键字就把多个线程并行给关闭了，效率大打折扣，所以我们不妨
 只在第一次调用创建实例时做同步，
 
+	// version-3
+
 	public class Singleton {
-		private Singleton instance;
+		private static Singleton instance;
 		private Singleton() { /* initialization */ }
-		public Singleton getInstance() {
+		public static Singleton getInstance() {
 			// 这个检查，防止每次调用都同步，
 			// 即只在需要创建实例的时候才同步
 			if(instance == null) {
@@ -68,11 +74,12 @@ __有且仅有一个实例存在__。最普通的单例模式实现如下，
 上面的单例实现是多线程安全的，还有没有别的实现呢，毕竟我们只需在创建
 实例时需要同步，何不利用__类加载__时的多线程安全性呢，
 
+	// version-4
+
 	public class Singleton {
-		// static 修饰符至关重要！
 		private static Singleton instance = new Singleton();
 		private Singleton() { /* initialization */ }
-		public Singleton getInstance() {
+		public static Singleton getInstance() {
 			return instance;
 		}
 	}
@@ -81,3 +88,125 @@ static变量在类加载时被初始化，而在Java中类加载过程是多线�
 这就解决了我们的问题。不过，如此简介实现也是有损失的，我们丢掉了
 __惰性加载__，以前都是在调用`getInstance()`函数时才创建实例的，现在
 把创建实例的时机提前到类加载过程了，但是似乎并没有什么损失。
+
+##### Serializable Singleton #####
+单例的序列化和反序列化实在是没有必要，但是有些时候还真的需要(我不知道什么时候)，
+所以再次说明一下，要想序列化只需implements Serializable接口即可，单例也不
+例外，下面的例子中我们关注序列化，暂且忽略多线程安全性，
+
+	// version-5, wrong!!!
+
+	public class Singleton implements Serializable {
+		private static Singleton instance;
+		// 禁用new操作符
+		private Singleton() { /* initialization */ }
+		// 获取单例实例
+		public static Singleton getInstance() {
+			if(instance == null) {
+				instance = new Singleton();
+			}
+			return instance;
+		}
+	}
+
+只是增加一个接口还不行，因为这会导致每次反序列化时都产生一个新的实例，
+并且还不止于此，`static`属性是不被实例化的(默认实例化方式下)，这使得
+`instance`这个类属性始终为`null`，除非`getInstance()`方法被调用。
+
+	Object s1 = object_input_stream1.readObject();
+	Object s2 = object_input_stream2.readObject();
+
+	s1 == s2; // false
+
+	// true, 可以修改instance为public看一下
+	s1.instance == s2.instance == null; 
+	
+	// true, getInstance()时重新创建一个对象，
+	// 它既不等于s1，也不等于s2
+	s1.getInstance() == s2.getInstance() != null;
+
+反序列化N次就有N的新的实例产生，而且调用`getInstance()`又会产生
+新的实例，好乱。为此我们要制止那N个实例的产生，而是只产生一个实例，
+
+	// version-6, wrong too!!!
+
+	public class Singleton implements Serializable {
+		private static Singleton instance;
+		// 禁用new操作符
+		private Singleton() { /* initialization */ }
+		// 获取单例实例
+		public static Singleton getInstance() {
+			if(instance == null) {
+				instance = new Singleton();
+			}
+			return instance;
+		}
+
+		// 这个方法在反序列化时会被调用到，如果它存在的话，
+		// 当然这要使用反射机制，它一定要是private的，为啥？
+		// 为啥？！你说为啥！
+		private Object readResolve() {
+			//assert(instance != null);
+			return instance;
+		}
+	}
+
+N次反序列化不再产生N个新实例了，而是一个？No，一个都没有！啊？
+是的，一个都没有，因为`getInstance()`从来没有被调用过，`instance`
+始终等于null，所有N次反序列化每次都得到`null`。虽然如此，当我们调用
+`getInstance()`获取单例实例时，便会创建一个实例，而且它是真正唯一的。
+
+万事大吉了？No，`getInstance()`得到的实例是唯一了，但是它并没有获得
+序列化时保存下来的状态，我们的序列化被架空了，没起到任何效果。还要再次
+改进，
+
+	// version-7, right!!!
+	
+	public class Singleton implements Serializable {
+		private static Singleton instance;
+		// 禁用new操作符
+		private Singleton() { /* initialization */ }
+		// 获取单例实例
+		public static Singleton getInstance() {
+			if(instance == null) {
+				instance = new Singleton();
+			}
+			return instance;
+		}
+
+		// 这个方法在反序列化时会被调用到，如果它存在的话，
+		// 当然这要使用反射机制，它一定要是private的，为啥？
+		// 为啥？！你说为啥！
+		public Object readResolve() {
+			//assert(instance != null);
+			return instance;
+		}
+
+		// 反序列化时会创建一个新的对象(但是并不调用其构造函数)，
+		// 默认会调用ObjectInputStream.defaultReadObject()
+		// 来初始化该对象，但是如果这个对象(对象的类)有
+		// readObject()方法的话，就转而调用该方法，而不再执行默认行为
+		private void readObject(ObjectInputStream ois)
+				throws ClassNotFoundException, IOException {
+
+			// 使用默认的方法初始化对象(反序列化时创建的对象)
+			ois.defaultReadObject();
+
+			synchronized(SingleTon.class) {
+				// 这个if判断很重要，它使得只有第一次反序列化时才会
+				// 修改instance的值
+				if(instance == null) {
+					// re-initialize if needed
+
+					instance = this; // IMPORTANT!
+				}
+			}
+		}
+	}
+
+至此，完美了！ 每次反序列化时都会调用到`readObject()`方法，它会给
+`instance`属性赋值，而后续的反序列化都会返回`instance`指定的对象，于是乎，
+每次反序列化都会返回唯一的一个对象，而且该对象在第一次反序列化时已经
+获取到了序列化时的状态，目的达成！
+
+##### Anti-reflect singleton #####
