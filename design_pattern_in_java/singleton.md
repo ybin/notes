@@ -89,7 +89,24 @@ __有且仅有一个实例存在__。最普通的单例模式实现如下，
 static变量在类加载时被初始化，而在Java中类加载过程是多线程安全的，
 这就解决了我们的问题。不过，如此简介实现也是有损失的，我们丢掉了
 __惰性加载__，以前都是在调用`getInstance()`函数时才创建实例的，现在
-把创建实例的时机提前到类加载过程了，但是似乎并没有什么损失。
+把创建实例的时机提前到类加载过程了，但是似乎并没有什么损失。即便丢掉
+__惰性加载__没什么损失，但是我们还是不想丢，
+
+	// version-4.1
+	
+	public class Singleton {
+		private Singleton() { /* initialization */ }
+
+		private static class SingletonHolder {
+			private static final Singleton INSTANCE = new Singleton();
+		}
+
+		public static Singleton getInstance() {
+			// 此时才会创建instance对象，而且对象的创建是在holder的类加载阶段，
+			// 多线程安全和惰性加载兼顾
+			return SingletonHolder.INSTANCE;
+		}
+	}
 
 ##### Serializable Singleton #####
 单例的序列化和反序列化实在是没有必要，但是有些时候还真的需要(我不知道什么时候)，
