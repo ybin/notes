@@ -1,14 +1,28 @@
-﻿\section[Inner Class]{Inner Class}
-Java中，Inner class的field/method相当于Outer class的field/method，
-只不过要通过Inner class或Inner class的对象对其进行访问而已。
+﻿\section[Nested Class]{Nested Class}
+在Java中，有一种定义在类内部的类，叫做Nested Class(嵌套类)，
+嵌套类分为两种：
+\begin{enumerate}
+  \item static nested class(静态嵌套类)
+  \item non-static nested class(非静态嵌套类)
+\end{enumerate}
+non-static nested class又被称作inner class，于是static nested class
+就简称为nested class了。下面我们用如下名词的含义，
+\begin{itemize}
+  \item nested class: 指static nested class和non-static nested class
+  \item inner class: 指non-static nested class
+  \item static nested class, static inner class等价
+\end{itemize}
 
-\subsection[内部类的可见性]{内部类的可见性}
-内部类的field/method跟外部类的field/method本质上是一样的，只是访问
-方式不同而已，所以内部类和外部类相互之间是“完全透明”的。
+nested class的member(field和method)相当于Outer class的member(field和method)，
+只不过要通过nested class或nested class的对象对其进行访问而已。
+
+\subsection[嵌套类的可见性]{嵌套类的可见性}
+内部类的member(field和method)跟外部类的member(field和method)本质上是一样的，
+只是访问方式不同而已，所以内部类和外部类相互之间是“完全透明”的。
 
 \subsection[Create object of Inner class ]{Create object of Inner class}
-由于non-static inner class依附于outer class而存在，所以创建这种类型的
-对象时必须有outer class对象存在才行；而对于static inner class则无此限制。
+由于inner class(non-static nested class)依附于outer class而存在，所以创建这种类型的
+对象时必须有outer class对象存在才行；而对于static nested class则无此限制。
 
 \begin{javacode}
 class Outer {
@@ -34,18 +48,18 @@ class Outer {
 class Test {
   void test() {
     Outer outer = new Outer();
-    // non-static内部类依附于外部类而存在，所以实例化时必须存在外部类对象
+    // inner class依附于外部类而存在，所以实例化时必须存在外部类对象
     InstanceInner iInner = outer.new InstanceInner();
-    // static内部类则可直接实例化，不需外部类对象存在
+    // static nested class则可直接实例化，不需外部类对象存在
     StaticInner sInner = new Outer.StaticInner();
   }
 }
 \end{javacode}
 
-\subsection[Inner class for JVM]{Inner class for JVM}
-在JVM看来，inner class是如何表示的呢？
+\subsection[Nested class for JVM]{Nested class for JVM}
+在JVM看来，nested class是如何表示的呢？
 
-\emph{在JVM中，根本没有inner class这个概念！一切都是顶级类！}
+\emph{在JVM中，根本没有nested class这个概念！一切都是顶级类！}
 
 只是内部类最终编译成class文件时，其名称是...\$...class这样的形式。
 
@@ -85,4 +99,5 @@ static int access$0(com.example.javademo.OuterClass$InnerClass);
 
 这个静态函数其实只是把属性"in"的值返回而已，这个静态函数叫做sythetic函数，
 也叫做bridge函数。进一步查看.class的二进制数据(用十六进制编辑器)，可以看到
-该函数的access\_flag设置为10 08，即ACC\_SYNTHETIC | ACC\_STATIC。
+该函数的access\_flag设置为10 08，即ACC\_SYNTHETIC | ACC\_STATIC。Static nested
+class也是同样的道理。
