@@ -40,6 +40,79 @@ u0_a82    9995  1821  512052 45268 ffffffff 4006e25f S com.example.aidldemo:Serv
   \item[false:] 该组件为私有的，外部无法看到该组件，即使该组件声明了intent-filter也无能为力。
 \end{description}
 
+
+\subsection[launchMode]{launchMode}
+注意：Task是用来管理Activity的，它确定了多个Activity之间的关系，
+至于这些Activity运行的进程、线程它从不过问，即两个Task中的Activity
+显然是两个实例，但是它们可以运行在同一个线程中（如正常启动Camera和
+从短信中调用Camera，此时就是同一个进程、同一个线程中存在两个Camera
+Activity的实例），反过来同一个Task中的两个Activity也可以运行在不同
+的进程中，这是很显然的，短信调用Camera，Camera不可能运行在短信应用
+的进程中去，很显然嘛，因为Camera需要的资源都在Camera的Application中啊！
+\vspace{1em}
+android:launchMode变量，它与Intent的FLAG\_ACTIVITY\_*变量共同作用，决定如何启动Activity来处理Intent。
+两者都是在标准启动方式的基础上增加一些额外的启动条件，所以两者共同决定的结果就是：
+
+实际的启动模式必须既满足android:launchMode规定的条件又满足Intent里规定的条件。
+
+例如，launchMode设置为Standard而Intent的flag设置为FLAG\_ACTIVITY\_SINGLE\_TOP，
+则Activity就按照singleTop来启动。
+
+\subsubsection[android:launchMode]{android:launchMode}
+android:launchMode有以下四种，
+\begin{description}
+  \item[``standard'':] One Intent create one (this kind) activity.
+  
+  \item[``singleTop'':] This activity is single on top. \\
+  即不允许出现该activity的“多个”实例同时位于stack top的情况。
+  当栈顶activity调用它自身时就会出现这种情况，此时不会创建新的实例，
+  而是调用activity的onNewIntent()方法。
+  
+  \item[``singleTask'':] This activity is single in task(and in Android System，但是该栈中可以有其他activity).
+    \begin{itemize}
+      \item 具有相同affinity的其他activity调用singleTask的activity时(如同一个application中的activity或者设置了
+      android:taskAffinity属性的activities)，不会创建新栈而是在当前栈中入栈。
+      \item 具有不同affinity的其他activity调用singleTask的activity时，创建新栈并作为根元素将其置于栈底。
+      
+      \item singleTask的activity可以正常调用别的activity并将它们入栈(置于自己的上面)。
+      
+      \item 如果singleTask的activity不在栈顶，此时它被作为target activity调用时(它上面的其他activity调用它)，
+      则“其上”的所有activity被弹出销毁。
+    \end{itemize}
+  
+  \item[``singleInstance'':] This activity is single in Android System，并且“独占”一个stack。
+\end{description}
+
+在系统中，singleTask、singleInstance的activity都只允许一个实例存在！
+
+注意：singleInstance的activity，由于它一定是栈底的根元素，所以如果它没有在桌面注册图标，
+按下HOME键后就再也回不到它的“即时界面”了，例如：D是singleInstance的，当前栈(stack1)：A, B, C，C调用D，
+则系统会创建新的栈(stack2)并将D置于栈底，此时HOME按下，因为D没有在Launcher注册，所以无法调起stack2，
+可以调起stack1(如果A在Launcher有注册的话)，但是此时显示的是C的界面。如果再次调用D就会再次进入stack2，
+但是D会被重新初始化(存疑？)，第一次调起D时的临时界面永远丢失了。
+
+再注意：四个modes将activity分为四类，进一步分为两组：standard和singleTop一组，singleTask和singleInstance一组，
+第一组适合绝大多数activity，后一组使用很罕见，尽量不要使用。
+
+\subsubsection[Intent Flags]{Intent Flags}
+
+\begin{description}
+  \item[FLAG\_ACTIVITY\_CLEAR\_TOP] 如果target activity已经在当前栈中，则将“其上”的activities销毁。\\
+  如当前task stack是这样的：A, B, C, D，D位于栈顶，此时D调用B，并且在Intent中设置该参数，则C、D被弹出销毁。
+  当然，如果target activity压根儿不在当前栈中，该参数就不起任何作用了。
+  \item[FLAG\_ACTIVITY\_SINGLE\_TOP] 如果target activity已经在当前栈中，并且它位于栈顶，则不创建新实例而是调用其
+  onNewIntent()方法。\\
+  该参数跟android:launchMode中的singleTop作用一样，需要注意的是，这种情况只有一种，那就是栈顶activity调用
+  它自身。
+  \item[FLAG\_ACTIVITY\_NEW\_TASK] 要求新的activity放到别的栈中，系统会为该Intent寻找新的stack，寻找的依据
+  就是activity的android:taskAffinity属性，如果找到一个栈，它的root activity也具有一样的affinity就创建一个新实例
+  (或者如果已经存在一个实例，就清空其上的activity)，并入栈；如果不存在这样的栈就新创建一个，并入栈。
+  \item[FLAG\_ACTIVITY\_NO\_HISTORY] target activity不入栈。\\
+  如当前栈情况：A, B, C，C在栈顶，它调用D并且设置该参数，则D启动之后当前栈的情况仍然是：A, B, C，D并不入栈，
+  如果此时D再“正常”调用E，则当前栈变为：A, B, C, E，E返回之后直接进入C，D就像没有存在过一样。
+\end{description}
+
+
 \section[onUserLeaveHint()]{onUserLeaveHint()}
 onUserLeaveHint()函数用于提示系统当用户离开之后该怎么做。
 举例来说：当app正在运行，此时来电，app的onPause()被执行；但是，当HOME键被按下时，
@@ -167,24 +240,6 @@ R.drawable.footer\_transition的定义如下：
 %\meaning\part
 %\the\headsep
 %\the\headheight
-
-\section[Activity的启动模式]{Activity的启动模式}
-android:launchMode变量，它与Intent的FLAG\_ACTIVITY\_*变量共同作用，决定如何启动Activity来处理Intent。
-
-\begin{description}
-  \item[``standard'':] 一个Intent调起一个Activity实例来响应它，一一对应；
-  \item[``singleTop'':] 一个Intent调起一个Activity实例，除非它恰好位于Task Stack顶部；
-  \item[``singleTask'':] Activity只存在于Task Stack的栈底，该栈中允许有其他Activity；
-  \item[``singleInstance'':] Activity实例“独占”一个Task Stack。
-\end{description}
-
-四个值分为两组：
-
-\begin{description}
-  \item[``standard''、``singleTop'':] Activity可以有多个实例，而且可以处于多个Task Stack中；
-  \item[``singleTask''、``singleInstance'':] Activity只有一个实例，而且都处于Task Stack底部。
-\end{description}
-
 
 \section[通过Intent传递对象]{通过Intent传递对象}
 Intent发送端：\par
