@@ -2,21 +2,27 @@
 大家几乎都被IDE绑架了，谁还关注命令行java呢？\par
 注意：java的参数都是使用“-”的，不论长格式还是短格式，这跟GNU格式不同。
 
+下面的参数说明，
+\begin{itemize}
+  \item runnable: 指的是“全限定名”格式的class，不是.class文件。
+  \item -classpath: 其值可以是包含.class文件的folder、.jar文件、.zip文件，默认包含当前路径。
+\end{itemize}
+
+
 \subsection[编译命令：javac]{编译命令：javac}
 \cmd{javac -classpath </path/to/folder;/path/to/.jar;/path/to/.zip>\\
       \hspace*{5em}-sourcepath </path/to/folder;/path/to/.jar;/path/to/.zip>}
--classpath的值可以是folder、.jar、.zip，其中包含的都是.class文件；\\
--sourcepath的值可以是folder、.jar、.zip，其中包含的都是.java文件。
 
 \subsection[运行命令：java]{运行命令：java}
 \cmd{java -classpath </path/to/folder;/path/to/.jar;/path/to/.zip> runnable}
--classpath的值可以是folder、.jar、.zip，其中包含的都是.class文件。\\
-runnable是一个.class文件，扩展名.class不要加上。
 
-注意：-classpath或者-cp时，必须加上“当前目录”，否则找不到runnable，这个太蛋疼了吧！
-
+实例：\\
 运行Eclipse项目的某一个class文件时，在bin(output dir)目录下执行，
 \cmd{java com.example.DemoClass}
+
+全限定类名称本身就携带了其对应.class文件的“相对路径”\\(如com/example/DemoClass.class)，
+所以java.exe搜索classpath时“不会”递归搜索，而是把classpath里的路径跟.class
+文件的相对路径拼凑成完整的路径，然后再看这个完整路径对应的文件是否存在。
 
 常用命令参数，
 
@@ -45,4 +51,3 @@ javap是java的反汇编命令，但是很少有人用它来进行反汇编，
 用javap来输出.class文件的字节码信息，对于学习JVM来说是
 很有帮助的。
 \cmd{javap -verbose runnable}
-注意：runnable为.class文件，后缀.class不要加上。
