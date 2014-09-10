@@ -1,0 +1,81 @@
+﻿
+\documentclass[a4paper,11pt]{article}
+
+\input{../styles/article_preamble}
+\input{../styles/tikz_preamble}
+
+\sybtitle{同步、异步，阻塞、非阻塞}
+\sybauthor{孙延宾}
+\sybdate{\today}
+
+\begin{document}
+\tt % I love Typewriter font.
+%%%%%%%% the title page and toc %%%%%%%%%%
+\pagestyle{header}
+\sybmaketitle
+%\tableofcontents
+\newpage
+
+%%%%%%% the main content %%%%%%%%%
+\pagestyle{main}
+\setcounter{page}{1}
+
+\section[术语]{术语}
+\begin{itemize}
+  \item 同步：synchronize
+  \item 异步：asynchronize
+  \item 阻塞：block
+  \item 非阻塞：nonblock
+\end{itemize}
+
+\section[一个故事]{一个故事}
+故事来源于网络，作者未知。
+
+老张爱喝茶，经常烧水沏茶。下面是他烧水时的情景，
+\begin{description}
+  \item[情形1: ] 烧上水，然后站在炉灶前什么都不干，等水烧开。
+  \item[情形2: ] 烧上水，然后去客厅看电视，看一会儿就去检查水是否开了。烧一壶水有可能检查多次。
+\end{description}
+老张觉得这样烧水太累了，在炉灶前一直等累得慌，一次次检查也不轻松，
+于是他决定买个高级的水壶，这种水壶烧开水后自己鸣哨，听到哨声他就知道水开了。
+于是老张烧水的情形变成了这样，
+\begin{description}
+  \item[情形3: ] 烧上水，然后去客厅看电视，水烧开后自动鸣哨通知老张。
+  \item[情形4: ] 烧上水，老张依然站在炉灶前等水烧开。(老张说自己不傻，这种情形事实上从未发生过)
+\end{description}
+从老张的角度看，烧水时他什么都不干而是专心等水烧开，那么他就是把自己阻塞(block)了，
+而如果他去做别的事情(不管是再次检查水是否烧开，还是一直看电视直到水壶鸣哨)，他都没有把自己阻塞住，
+此时老张是非阻塞的。
+
+而从水壶的角度看，普通的水壶水开后并不鸣哨，整个烧水过程是同步的，不管老张一直等着还是一次次跑来检查，
+这个过程都是同步的。对于高级水壶，水开后自动鸣哨通知，整个烧水过程是异步的，不管老张等还是不等还是
+一次次检查，烧水过程都是异步的。
+
+\section[抽象理解]{抽象理解}
+将参与事件的双方抽象为\emph{调用者}（老张）和\emph{被调用者}（水壶），
+那么就可以这样区分这四个术语，
+\begin{itemize}
+  \item 从\emph{被调用者}角度可分为：
+    \begin{enumerate}
+      \item 同步：\emph{被调用者}做完事情，并不主动通知\emph{调用者}。
+      \item 异步：\emph{被调用者}做完事情，主动通知\emph{调用者}(通过某种机制，如回调、鸣哨)。
+    \end{enumerate}
+  \item 从\emph{调用者}角度可分为：
+    \begin{enumerate}
+      \item 阻塞：\emph{调用者}啥也不做，就等着调用结果，死等。
+      \item 非阻塞：\emph{调用者}并不死等结果而是做别的事情，必要时(如跟同步机制结合时)隔一段时间再来主动检查调用结果。
+    \end{enumerate}
+\end{itemize}
+同步、异步和阻塞、非阻塞是两组概念，这两组之间没有必然的联系，
+但是一般情况下，同步通讯时进一步结合阻塞、非阻塞方式，因为同步机制
+规定了\emph{被调用者}在完成事情之后并不主动通知\emph{调用者}，
+所以调用者要采取措施获取调用结果，要么把自己阻塞，死等结果，
+要么抽空做点儿别的，过后再来检查调用结果。而异步通讯时，由于
+\emph{被调用者}做完事情之后会主动通知\emph{调用者}，所以
+\emph{调用者}完全没有必要阻塞自己，放心去做别的事情好了，
+即\emph{调用者}一定是非阻塞的。当然
+此时\emph{调用者}也可以什么都不做而是专心等结果，但是这样就太傻了。
+
+综合起来，通讯机制可以分为：同步阻塞、同步非阻塞、异步。
+
+\end{document}
