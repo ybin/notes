@@ -1,0 +1,62 @@
+﻿
+\documentclass[a4paper,11pt]{article}
+
+\input{../styles/article_preamble}
+\input{../styles/tikz_preamble}
+
+\sybtitle{ImageMagik Notes}
+\sybauthor{孙延宾}
+\sybdate{\today}
+
+\begin{document}
+\tt % I love Typewriter font.
+%%%%%%%% the title page and toc %%%%%%%%%%
+\pagestyle{header}
+\sybmaketitle
+\tableofcontents
+\newpage
+
+%%%%%%% the main content %%%%%%%%%
+\pagestyle{main}
+\setcounter{page}{1}
+
+\section[resize image]{缩放图片}
+默认为按照图片的尺寸进行等比例缩放，
+\cmd{convert <src img> -resize <width>x<height> <dst img>}
+如，
+\cmd{convert src.png -resize 400x400 dst.jpg}
+
+可以强制按照指定的尺寸缩放，注意感叹号("!")，
+\cmd{convert <src img> -resize <width>x<height>! <dst img>}
+
+如，
+\cmd{convert src.png -resize 400x400! dst.jpg}
+
+\section[extent image]{扩展图片}
+与缩放不同，扩展图片指的是将图片放到一个更大的背景上，
+而原始图片保持不变，
+\cmd{convert <src img> -extent <width>x<height> <dst img>}
+
+当然，扩展并一定是扩大，也可以缩小。除此之外还可以设置图片
+在背景上的位置，即"gravity"参数(也可以使用"geometry"参数)，注意这个参数一定要
+放到"extent"参数之前才行，
+\cmd{convert <src img> -gravity center -extent <width>x<height> <dst img>}
+
+另外还可以设置背景色，
+\cmd{convert <src img> -background white -gravity center\\\hspace*{11.5em}-extent <width>x<height> <dst img>}
+
+\section[compose images]{合成图片}
+合成图片即将多个小图片合成一张大的图片，
+\cmd{convert -size <width>x<height> xc:<color>\\
+      \hspace*{10em}img1.png -geometry +x+y -composite\\
+      \hspace*{10em}img2.png -geometry +x+y -composite\\
+      \hspace*{10em}img3.png -geometry +x+y -composite\\
+      \hspace*{10em}img4.png -geometry +x+y -composite <dst img>}
+如，将四个100x100的小图片合成为一个200x200的大图片，
+\cmd{convert -size 200x200 xc:white\\
+      \hspace*{10em}img1.png -geometry +0+0 -composite\\
+      \hspace*{10em}img2.png -geometry +100+0 -composite\\
+      \hspace*{10em}img3.png -geometry +0+100 -composite\\
+      \hspace*{10em}img4.png -geometry +100+100 -composite dst.jpg}
+
+\end{document}
