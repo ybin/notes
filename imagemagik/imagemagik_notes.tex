@@ -20,6 +20,13 @@
 \pagestyle{main}
 \setcounter{page}{1}
 
+\section[basic usage]{基础语法}
+\cmd{convert <options> <src img> <dst img>}
+如，
+\cmd{convert src.png dst.jpg}
+因为jpeg是有损压缩，所以可以使用"quality"参数，
+\cmd{convert -quality 80\% src.png dst.jpg}
+
 \section[resize image]{缩放图片}
 默认为按照图片的尺寸进行等比例缩放，
 \cmd{convert <src img> -resize <width>x<height> <dst img>}
