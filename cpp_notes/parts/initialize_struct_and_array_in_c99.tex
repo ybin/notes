@@ -1,0 +1,24 @@
+﻿\section[Initialize struct and array in C99]{C99中的结构体、数组初始化}
+下面是C99中数组和结构体的初始化语法，
+
+\subsection[Initialize array]{数组初始化}
+\begin{cppcode}
+  // 以下三者等价
+  int a[5] = { [4] = 4, [2] = 2, [0] = 10 };
+  int a[]  = { [4] = 4, [2] = 2, [0] = 10 };
+  int a[5] = { 4, 0, 2, 0, 10 };
+\end{cppcode}
+
+\subsection[Initialzie struct]{结构体初始化}
+\begin{cppcode}
+  struct Foo {
+    int x;
+    int y;
+    int z;
+  };
+  struct Foo foo = {.z = 3, .x = 1};
+  // 将所有元素初始化为0
+  struct Foo bar = { 0 }; // foo.x = 0, foo.y = 0, foo.z = 0
+  // 第一个元素初始化为5，其他全是0
+  struct Foo baz = { 5 }; // foo.x = 5, foo.y = 0, foo.z = 0
+\end{cppcode}

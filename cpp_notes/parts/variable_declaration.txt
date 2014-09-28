@@ -1,0 +1,36 @@
+﻿origin website:
+http://www.quora.com/C-programming-language/Why-doesnt-C-use-better-notation-for-pointers/answer/Brian-Bi
+
+The fact that an asterisk is used when declaring a pointer and an asterisk is used when dereferencing a pointer is not some sort of usability glitch in C. It is intentional.
+
+There are two other notations that work like this. You use square brackets when declaring an array, and you use square brackets when accessing an array. You use parentheses when declaring a function pointer, and you use parentheses when calling a function pointer.
+
+Declaration follows use.
+
+Consider the following declaration:
+int *a;
+This declaration tells you that *a is of type int. In other words, a is a pointer to int.
+
+How about this:
+int *a[10];
+This declaration tells you that *a[i] (where i is between 0 and 9, inclusive) is of type int. Since array indexing has higher precedence than pointer dereferencing, this tells you that a is something that you can use [] on (i.e., an array), then use * on (i.e., a pointer)... and you will get an int as a result. In other words, a is an array[10] of pointers to int.
+
+int (*a)[10];
+This declaration tells you that (*a)[i] is of type int. Since a is something you can use * on, it must be a pointer. And then you can use [] on the result to get an int. So we see that the type of a must be pointer to array[10] of int.
+
+Notice that the above two declarations differ only in parentheses! But you don't have to memorize where parentheses should go for every type you might want to declare. Write down how you would use the variable, and slap the final type on at the beginning, just as in the above two examples. Any parentheses you have to insert for precedence reasons, include as well in the declaration.
+
+Many C programmers have trouble remembering how to declare function pointers. This, too, becomes easy when you remember that declaration follows use. For example, let's declare a function pointer that we could use to hold the address of the function strcpy. This variable is something that, in order to use, you first dereference (with *), then call, using (), where the parentheses contain two arguments; the first being char*, and the second const char*. And the result is a char*.
+
+Let's call our function pointer p. The first thing we do is dereference, so we write down *p. Then we call *p with the arguments char* and const char*, so write those down in parentheses next to *p: (*p)(char*, const char*). (The parentheses are required around *p because function calling has higher precedence than dereferencing.) Finally, prepend the result of the usage, that is, the char* the function returns. So our declaration is:
+char* (*p)(char*, const char*);
+
+const is a special case. The keyword const in a declaration applies to whatever thing you would have if you only partially use the variable, but stop once you "get" to it. It means that that particular thing can't be changed.
+
+Now, I'm sure you know that const char *s; declares a pointer to constant chars. That makes sense, since the thing at the beginning is const char, i.e., the result of *s is a const char. However, you can also write it in the form char const *s;. The interpretation is that we can "get" as far as *s, and then we see the word const, so it means what we have up to this point is const. Ignoring the const for a moment, we see char. So *s is a char, and it's also const because the word const precedes *s.
+
+Now what about char *const s;? This means const pointer to char. The pointer can't be changed, but the thing it points to can. This is because the keyword const comes directly before s, so it "lies in the way" of the dereferencing operator, so to speak. s is const before it is dereferenced, but *s is not const. The declarations char const *const s; or const char *const s; mean const pointer to const char.
+
+For double (and higher) pointers, it's the same deal. const char **p; declares a pointer to pointer to const char, as does char const **p;. However, char *const *p; declares a pointer to const pointer to char, and char **const p; delcares a const pointer to pointer to char.
+
+Just remember that declaration follows use, and you'll never be confused by declaration syntax again.

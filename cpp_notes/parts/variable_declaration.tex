@@ -1,0 +1,63 @@
+﻿\section[Variable declaration(another way)]{另一种C语言变量声明语法的理解}
+前面讲了right-left规则，非常棒的规则，下面再介绍一种理解
+变量声明(尤其是含指针的变量声明)的方法，这个方法是Brian Bi大神
+在Quora上的回答，\href{http://www.quora.com/C-programming-language/Why-doesnt-C-use-better-notation-for-pointers/answer/Brian-Bi}{参考网址}。
+
+该方法的核心是“声明记录使用”(Declaration follows use)。
+这句话的意思是说：把变量的“使用过程”记录下来就是“声明”。
+
+如果说right-left法则是为了“读”声明语句，那么这里介绍的方法
+则主要是为了“写”声明语句，该方法要求首先要明确声明的变量
+要如何使用，然后把使用过程记录下来，自然而然就形成了变量声明。
+
+举例来说，
+
+\begin{cppcode}
+  int *p;
+\end{cppcode}
+
+我们如何使用变量p呢？\\
+“我们将p解引用，然后就得到一个int值”，这就是我们使用p的过程。
+
+又如，
+
+\begin{cppcode}
+  int *p[5];
+\end{cppcode}
+
+变量p的使用过程如下，
+\begin{enumerate}
+  \item 使用[]操作得到数组的元素(p[i])
+  \item 每个元素都可以解引用(*p[i])
+  \item 每个元素解引用的结果都是int类型的值
+\end{enumerate}
+为何先使用[]操作(indexing)而不是先解引用呢？因为优先级不同。
+
+再如，
+
+\begin{cppcode}
+  int (*p)[5];
+\end{cppcode}
+
+变量p的使用过程如下，
+\begin{enumerate}
+  \item 解引用p(*p)得到一个数组
+  \item 使用[]操作得到数组的元素
+  \item 结果每个元素都是int类型
+\end{enumerate}
+因为优先级的原因，要保证使用过程中步骤的先后顺序，有时需要添加括号。
+
+方法介绍到这里，下面是使用过程。
+举个例子，我们想定义一个变量，它是一个指向函数的指针，这个函数返回
+另一个函数指针，被指向的函数返回一个整型指针。
+
+我们一边使用该变量一边记录下使用过程，
+\begin{enumerate}
+  \item 变量命名为p，因为它是一个指针，所以使用时需要解引用 => *p
+  \item 解引用得到一个函数，我们调用该函数，注意优先级，使用括号保证顺序 => (*p)()
+  \item 函数执行后返回一个指针，我们解引用该指针 => *(*p)()
+  \item 解引用得到一个函数，我们调用该函数，注意优先级，使用括号保证顺序 => (*(*p)())()
+  \item 函数执行后返回一个指针，我们解引用该指针 => *(*(*p)())()
+  \item 解引用的结果是得到一个整型值 => int *(*(*p)())()
+\end{enumerate}
+接下来我们可以使用right-left法则检验该声明是否合法，完全正确。
