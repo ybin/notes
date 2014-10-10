@@ -24,3 +24,5 @@ release/*
 *.sav
 
 \#*\#
+
+*.exe
