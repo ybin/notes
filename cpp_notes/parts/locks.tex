@@ -1,0 +1,41 @@
+﻿\section[locks in kernel]{内核中的锁}
+Kernel中主要有两种锁:
+\begin{enumerate}
+  \item 自旋锁(spinlock)
+  \item 信号量(semaphore)
+\end{enumerate}
+
+\subsection[定义]{定义}
+\begin{description}
+  \item[spinlock: ] 自旋锁是专为防止“多处理器并发”而引入的一种锁。自旋锁最多只能被一个内核任务持有，如果一个内核任务视图请求
+  一个已被持有的自旋锁，那么这个任务就会进入busy-wait loop，直到拿到锁为止。自旋锁忙等待会100\%占用CPU，所以它只适合于多处理器
+  场景，显然它最好用于等待时间非常短的场景下。
+  \item[semaphore: ] 信号量S是一个整数，S大于等于零表示可供使用的进程数目，S小于零表示正在等待使用共享资源的进程数目。
+  \begin{itemize}
+    \item P操作申请资源:
+    \begin{description}
+      \item[(1)] S减1
+      \item[(2)] 若S减1后大于0，则进程继续执行
+      \item[(3)] 如S减1后小于0，则进程被阻塞并放入该信号量对应的队列中，等待进程调度
+    \end{description}
+    \item V操作释放资源:
+    \begin{description}
+      \item[(1)] S加1
+      \item[(2)] 若S加1后大于0，则进程继续执行
+      \item[(3)] 若S加1后小于0，则从该信号量对应的队列中唤醒一个等待进程
+    \end{description}
+  \end{itemize}
+  \item[mutex: ] 互斥锁可以视为S等于1的semaphore。
+  \item[adaptive lock: ] 自适应锁是spinlock和semaphore的结合，它根据持有锁的进程的
+  方面程度决定等待锁的进程是busy-wait还是进入sleep。
+\end{description}
+为何叫PV操作呢？\\
+原因是信号量和PV操作都是荷兰计算机科学家Dijkstra发明的，
+在荷兰语中，“通过”叫passeren，“释放”叫vrijgeven，PV操作因此得名。
+这是在计算机术语中不是用英语表达的极少数的例子之一。
+
+\subsection[对比]{对比}
+\begin{itemize}
+  \item spinlock是非睡眠的，它会一直循环等待，直到拿到锁，因此持有锁的进程禁止睡眠。
+  \item semaphore是睡眠锁，如果进程申请锁失败就会被阻塞并放到该锁的等待队列中。
+\end{itemize}
