@@ -17,6 +17,9 @@
 
 *.prj
 release/*
+*/_minted-*_notes/
+*.mintedcmd
+*.mintedmd5
 *.zip
 *.tar.gz
 *.projectile
