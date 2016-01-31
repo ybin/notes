@@ -1,4 +1,4 @@
-﻿origin website:
+origin website:
 http://www.quora.com/C-programming-language/Why-doesnt-C-use-better-notation-for-pointers/answer/Brian-Bi
 
 The fact that an asterisk is used when declaring a pointer and an asterisk is used when dereferencing a pointer is not some sort of usability glitch in C. It is intentional.
